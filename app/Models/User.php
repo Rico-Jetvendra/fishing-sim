@@ -16,10 +16,14 @@ class User extends Model{
         'twitch_user_id',
         'username',
         'display_name',
+        'user_rod',
+        'user_bait',
     ];
 
     protected $casts = [
         'twitch_user_id' => 'integer',
+        'user_rod'       => 'integer',
+        'user_bait'      => 'integer',
         'created_date'   => 'datetime',
         'updated_date'   => 'datetime',
     ];

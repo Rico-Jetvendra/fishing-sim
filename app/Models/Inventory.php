@@ -16,11 +16,12 @@ class Inventory extends Model{
         'user_id',
         'item_id',
         'item_amount',
+        'item_type',
     ];
 
     protected $casts = [
         'user_id'      => 'integer',
-        'item_id'      => 'string',
+        'item_id'      => 'integer',
         'item_amount'  => 'integer',
         'created_date' => 'datetime',
         'updated_date' => 'datetime',
