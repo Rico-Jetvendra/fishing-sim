@@ -5,9 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\FishingService;
 
-class FishingCommand extends Command{
-    protected $signature    = 'app:fishing {chat} {param?} {page?}';
-    protected $description  = 'Gameplay functions for the fishing simulator';
+class TwitchIrcListener extends Command{
+    protected $signature    = 'twitch:listen';
+    protected $description  = 'Listen to Twitch Chat';
     protected $username     = '';
     protected $display_name = '';
     protected $twitchId     = '';
@@ -22,16 +22,80 @@ class FishingCommand extends Command{
 
     public function __construct(private FishingService $fishService){
         parent::__construct();
-
-        $this->username     = 'shurui21';
-        $this->display_name = 'Shurui21';
-        $this->twitchId     = '1234567890';
     }
 
-    public function handle(): void{
-        $chat        = $this->argument('chat');
-        $param       = $this->argument('param');
-        $page        = $this->argument('page');
+    public function handle(){
+        $channel = env('TWITCH_CHANNEL');
+
+        $socket = fsockopen('irc.chat.twitch.tv', 6667);
+
+        if (!$socket) {
+            $this->error('Cannot connect');
+            return self::FAILURE;
+        }
+
+        $guestName = 'justinfan' . rand(10000, 99999);
+
+        fwrite($socket, "NICK {$guestName}\r\n");
+        fwrite($socket, "CAP REQ :twitch.tv/tags\r\n");
+        fwrite($socket, "JOIN #{$channel}\r\n");
+
+        $this->info("Connected as {$guestName}");
+        $this->info("Listening to #{$channel}");
+
+        while (!feof($socket)) {
+            $line = trim(fgets($socket));
+
+            if (!$line) {
+                continue;
+            }
+
+            $this->line($line);
+
+            if (str_starts_with($line, 'PING')) {
+                fwrite($socket, "PONG :tmi.twitch.tv\r\n");
+                continue;
+            }
+
+            $parts = explode(' ', $line);
+            $tags  = [];
+
+            if (str_starts_with($parts[0], '@')) {
+                $tagString = substr($parts[0], 1);
+
+                foreach (explode(';', $tagString) as $tag) {
+                    [$key, $value] = array_pad(explode('=', $tag, 2), 2, null);
+
+                    $tags[$key] = $value;
+                }
+            }
+
+            $this->twitchId     = $tags['user-id'] ?? null;
+            $this->display_name = $tags['display-name'] ?? null;
+
+            $message = null;
+
+            if (preg_match('/PRIVMSG #[^ ]+ :(.*)$/', $line, $matches)) {
+                $message = trim($matches[1]);
+            }
+
+            if(preg_match('/:([^!]+)!/', $line, $matches)){
+                $this->username = $matches[1] ?? null;
+            }
+
+            $this->startGame($message);
+        }
+
+        fclose($socket);
+
+        return self::SUCCESS;
+    }
+
+    private function startGame($message){
+        $commands = explode(" ", $message);
+        $chat     = $commands[0];
+        $param    = $commands[1] ?? null;
+        $page     = $commands[2] ?? null;
 
         switch($chat){
             case '!fish':

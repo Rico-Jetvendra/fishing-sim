@@ -30,6 +30,7 @@ class FishingService{
     public $season_name;
     public $location;
     public $location_name;
+    public $limit = 5;
 
     public function __construct(){
         $game                   = GameState::latest()->first();
@@ -43,18 +44,16 @@ class FishingService{
         $this->location_name    = $sql->location_name;
     }
 
-    public function fishList() {
-        $sql = Fish::all();
+    public function catchFish($twitchId, $username, $display_name){
+        $equipped    = User::where('twitch_user_id', '=', intval($twitchId))->first();
+        if(!$equipped){
+            $equipped = $this->firstTimer($twitchId, $username, $display_name);
+        }
 
-        return $sql;
-    }
-
-    public function catchFish($twitchId, $username){
-        $equipped    = User::where('twitch_user_id', '=', $twitchId)->first();
-        $bait        = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped->user_bait)->first();
+        $bait        = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped->user_bait)->where('user_id', '=', $twitchId)->first();
         $bait_amount = !$bait ? 0: $bait->item_amount;
         if($bait_amount <= 0){
-            return ["status" => "error", "message" => "You running out of bait."];
+            return ["status" => "error", "message" => "You are running out of bait."];
         }
 
         $fish        = $this->getSql()->get();
@@ -68,7 +67,7 @@ class FishingService{
         }
 
         $catchWeight = mt_rand($catch->fish_min_weight * 10, $catch->fish_max_weight * 10) / 10;
-        $item_amount = Inventory::where('item_id', $catch->fish_id)->where('item_type', '=', 'FISH')->first()?->item_amount ?? 0;
+        $item_amount = Inventory::where('item_id', $catch->fish_id)->where('item_type', '=', 'FISH')->where('user_id', '=', $twitchId)->first()?->item_amount ?? 0;
 
         CatchLog::create([
             'user_id'       => $twitchId,
@@ -92,7 +91,7 @@ class FishingService{
         if (!$user) {
             return [
                 'status' => 'error',
-                'message' => 'User not found'
+                'message' => 'User not found, please chat !fish to get your own Rod and Bait!'
             ];
         }
 
@@ -113,7 +112,7 @@ class FishingService{
                     return ['status' => 'error', "message" => "There's no bait with that name!"];
                 }
 
-                $inv  = Inventory::where('item_id', '=', $bait->bait_id)->where('item_type', '=', 'BAIT')->first();
+                $inv  = Inventory::where('item_id', '=', $bait->bait_id)->where('item_type', '=', 'BAIT')->where('user_id', '=', $twitchId)->first();
 
                 if(!$inv || $inv->item_amount <= 0){
                     return ['status' => 'error', "message" => "You don't have {$bait->bait_name} in your inventory!"];
@@ -132,7 +131,7 @@ class FishingService{
                     return ['status' => 'error', "message" => "There's no rod with that name!"];
                 }
 
-                $inv = Inventory::where('item_id', '=', $rod->rod_id)->where('item_type', '=', 'ROD')->first();
+                $inv = Inventory::where('item_id', '=', $rod->rod_id)->where('item_type', '=', 'ROD')->where('user_id', '=', $twitchId)->first();
 
                 if(!$inv || $inv->item_amount <= 0){
                     return ['status' => 'error', "message" => "You don't have {$rod->rod_name} in your inventory!"];
@@ -228,13 +227,22 @@ class FishingService{
         }
     }
 
-    public function checkInventory($twitchId, $param){
-        $inv = Inventory::where('user_id', '=', $twitchId);
+    public function checkInventory($twitchId, $param, $page){
+        $inv    = Inventory::where('user_id', '=', $twitchId);
+        $offset = ($page - 1) * $this->limit;
 
         switch ($param) {
             case 'fish':
-                $fish       = $inv->where('item_type', '=', 'FISH')->join('t_fish as f', 't_inventory.item_id', '=', 'f.fish_id')->select('f.fish_name', 't_inventory.item_amount')->get();
-                $fishCount  = $fish->count();
+                $sql        = $inv->where('item_type', '=', 'FISH')->join('t_fish as f', 't_inventory.item_id', '=', 'f.fish_id')->select('f.fish_name', 't_inventory.item_amount');
+                $fishCount  = $sql->count();
+                if($fishCount == 0){
+                    return ["status" => "error", "message" => "You don't have any fish in your possesion."];
+                }
+
+                $fish       = $sql->offset($offset)->limit($this->limit)->get();
+                if($fish->isEmpty()){
+                    return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                }
                 $messages   = "";
 
                 foreach ($fish as $key => $value) {
@@ -243,8 +251,16 @@ class FishingService{
 
                 return ['status' => 'success', "message" => $messages."\nTotal: ".$fishCount.' types of fishes'];
             case 'bait':
-                $bait       = $inv->where('item_type', '=', 'BAIT')->join('t_bait as b', 't_inventory.item_id', '=', 'b.bait_id')->select('b.bait_name', 't_inventory.item_amount')->get();
-                $baitCount  = $bait->count();
+                $sql        = $inv->where('item_type', '=', 'BAIT')->join('t_bait as b', 't_inventory.item_id', '=', 'b.bait_id')->select('b.bait_name', 't_inventory.item_amount');
+                $baitCount  = $sql->count();
+                if($baitCount == 0){
+                    return ["status" => "error", "message" => "You don't have any bait in your possesion."];
+                }
+
+                $bait       = $sql->offset($offset)->limit($this->limit)->get();
+                if($bait->isEmpty()){
+                    return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                }
                 $messages   = "";
 
                 foreach ($bait as $key => $value) {
@@ -253,8 +269,16 @@ class FishingService{
 
                 return ['status' => 'success', "message" => $messages."\nTotal: ".$baitCount.' types of baits'];
             case 'rod':
-                $rod       = $inv->where('item_type', '=', 'ROD')->join('t_rod as r', 't_inventory.item_id', '=', 'r.rod_id')->select('r.rod_name')->get();
-                $rodCount  = $rod->count();
+                $sql        = $inv->where('item_type', '=', 'ROD')->join('t_rod as r', 't_inventory.item_id', '=', 'r.rod_id')->select('r.rod_name');
+                $rodCount  = $sql->count();
+                if($rodCount == 0){
+                    return ["status" => "error", "message" => "You don't have any rod in your possesion."];
+                }
+
+                $rod       = $sql->offset($offset)->limit($this->limit)->get();
+                if($rod->isEmpty()){
+                    return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                }
                 $messages  = "";
 
                 foreach ($rod as $key => $value) {
@@ -278,22 +302,50 @@ class FishingService{
     public function checkDescription($param){
         $message = "";
         $fields  = explode("=", $param);
+        $value   = count($fields) > 1 ? $fields[1]: null;
 
         switch ($fields[0]) {
             case 'fish':
-                $fish = Fish::where('fish_name', 'LIKE', '%'.$fields[1].'%')->first();
+                if($value){
+                    $fish = Fish::where('fish_name', 'LIKE', '%'.$value.'%')->first();
+                    if(!$fish){
+                        $message = "There's no fish with that name!";
+                        break;
+                    }
 
-                $message = $fish->fish_description;
+                    $message = $fish->fish_description;
+                    break;
+                }
+                $message = "desc fish={fish_name}: Check the desciption of that fish.";
+
                 break;
             case 'bait':
-                $bait = Bait::where('bait_name', 'LIKE', '%'.$fields[1].'%')->first();
+                if($value){
+                    $bait = Bait::where('bait_name', 'LIKE', '%'.$value.'%')->first();
+                    if(!$bait){
+                        $message = "There's no bait with that name!";
+                        break;
+                    }
 
-                $message = $bait->bait_description;
+                    $message = $bait->bait_description;
+                    break;
+                }
+                $message = "desc bait={bait_name}: Check the desciption of that bait.";
+
                 break;
             case 'rod':
-                $rod = Rod::where('rod_name', 'LIKE', '%'.$fields[1].'%')->first();
+                if($value){
+                    $rod = Rod::where('rod_name', 'LIKE', '%'.$value.'%')->first();
+                    if(!$rod){
+                        $message = "There's no rod with that name!";
+                        break;
+                    }
 
-                $message = $rod->rod_description;
+                    $message = $rod->rod_description;
+                    break;
+                }
+                $message = "desc rod={rod_name}: Check the desciption of that rod.";
+
                 break;
             default:
                 $message = "desc {type}={item}: Check the desciption of that item";
@@ -303,201 +355,202 @@ class FishingService{
         return ["status" => "success", "message" => $message];
     }
 
-    public function itemList($param){
+    public function itemList($param, $page){
         $message = "";
         $fields  = explode("=", $param);
         $val     = count($fields) <= 1 ? "": $fields[1];
-        $config  = [
-            'fish' => [
-                'model'  => Fish::class,
-                'main' => 'fish_name',
-                'desc' => 'bait_name',
-            ],
-            'bait' => [
-                'model'  => Bait::class,
-                'main' => 'bait_name',
-                'desc' => 'fish_name'
-            ],
-            'rod' => [
-                'model'  => Rod::class,
-                'main' => 'rod_name',
-                'desc' => 'fish_name'
-            ],
-            'location' => [
-                'model'  => Location::class,
-                'main' => 'location_name',
-                'desc' => 'fish_name',
-            ],
-            'season' => [
-                'model'  => Season::class,
-                'main' => 'season_name',
-                'desc' => 'fish_name'
-            ],
-            'weather' => [
-                'model'  => Weather::class,
-                'main' => 'weather_name',
-                'desc' => 'fish_name'
-            ],
-        ];
-
-        if (!isset($config[$fields[0]])) {
-            return [
-                'status' => 'error',
-                'message' => 'Unknown list type.'
-            ];
-        }
-
-        $model      = $config[$fields[0]]['model'];
-        $nameColumn = $config[$fields[0]]['main'];
+        $offset  = ($page - 1) * $this->limit;
 
         switch ($fields[0]) {
             case 'fish':
                 if($val){
-                    $fish = Fish::join('t_fish_bait as fb', 'fb.fish_id', '=', 't_fish.fish_id')
-                                        ->join('t_bait as b', 'b.bait_id', '=', 'fb.bait_id')
-                                        ->select(
-                                            'b.bait_name',
-                                            't_fish.fish_name',
-                                        )
-                                        ->where('t_fish.fish_name', 'LIKE', '%'.$val.'%')
-                                        ->get();
+                    $sql  = Fish::join('t_fish_bait as fb', 'fb.fish_id', '=', 't_fish.fish_id')
+                                ->join('t_bait as b', 'b.bait_id', '=', 'fb.bait_id')
+                                ->select(
+                                    'b.bait_name',
+                                    't_fish.fish_name',
+                                )
+                                ->where('t_fish.fish_name', 'LIKE', '%'.$val.'%');
+                    if($sql->count() == 0){
+                        return ["status" => "error", "message" => "There's no fish by that name!"];
+                    }
+
+                    $fish = $sql->offset($offset)->limit($this->limit)->get();
 
                     if($fish->isEmpty()){
-                        $message = "There's no fish by that name!";
-
-                        return ["status" => "error", "message" => $message];
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message .= $fish[0]->fish_name."\n\n";
 
                     $message .= $fish->pluck('bait_name')->implode("\n");
                 }else{
-                    $message    = $model::pluck($nameColumn)->implode("\n");
+                    $fish    = Fish::offset($offset)->limit($this->limit)->get();
+                    if($fish->isEmpty()){
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                    }
+
+                    $message = $fish->pluck('fish_name')->implode("\n");
                 }
 
                 break;
             case 'bait':
                 if($val){
-                    $bait = Bait::join('t_fish_bait as fb', 'fb.bait_id', '=', 't_bait.bait_id')
-                                        ->join('t_fish as f', 'f.fish_id', '=', 'fb.fish_id')
-                                        ->select(
-                                            'f.fish_name',
-                                            't_bait.bait_name',
-                                        )
-                                        ->where('t_bait.bait_name', 'LIKE', '%'.$val.'%')
-                                        ->get();
+                    $sql  = Bait::join('t_fish_bait as fb', 'fb.bait_id', '=', 't_bait.bait_id')
+                                ->join('t_fish as f', 'f.fish_id', '=', 'fb.fish_id')
+                                ->select(
+                                    'f.fish_name',
+                                    't_bait.bait_name',
+                                )
+                                ->where('t_bait.bait_name', 'LIKE', '%'.$val.'%');
+                    if($sql->count() == 0){
+                        return ["status" => "error", "message" => "There's no bait by that name!"];
+                    }
+
+                    $bait = $sql->offset($offset)->limit($this->limit)->get();
 
                     if($bait->isEmpty()){
-                        $message = "There's no bait by that name!";
-
-                        return ["status" => "error", "message" => $message];
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message .= $bait[0]->bait_name."\n\n";
 
                     $message .= $bait->pluck('fish_name')->implode("\n");
                 }else{
-                    $message    = $model::pluck($nameColumn)->implode("\n");
+                    $bait = Bait::offset($offset)->limit($this->limit)->get();
+                    if($bait->isEmpty()){
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                    }
+
+                    $message  = $bait->pluck('bait_name')->implode("\n");
                 }
 
                 break;
             case 'rod':
                 if($val){
-                    $rod = Rod::join('t_fish_rod as fr', 'fr.rod_id', '=', 't_rod.rod_id')
-                                        ->join('t_fish as f', 'f.fish_id', '=', 'fr.fish_id')
-                                        ->select(
-                                            'f.fish_name',
-                                            't_rod.rod_name',
-                                        )
-                                        ->where('t_rod.rod_name', 'LIKE', '%'.$val.'%')
-                                        ->get();
+                    $sql  = Rod::join('t_fish_rod as fr', 'fr.rod_id', '=', 't_rod.rod_id')
+                                ->join('t_fish as f', 'f.fish_id', '=', 'fr.fish_id')
+                                ->select(
+                                    'f.fish_name',
+                                    't_rod.rod_name',
+                                )
+                                ->where('t_rod.rod_name', 'LIKE', '%'.$val.'%');
+                    if($sql->count() == 0){
+                        return ["status" => "error", "message" => "There's no rod by that name!"];
+                    }
+
+                    $rod = $sql->offset($offset)->limit($this->limit)->get();
 
                     if($rod->isEmpty()){
-                        $message = "There's no rod by that name!";
-
-                        return ["status" => "error", "message" => $message];
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message .= $rod[0]->rod_name."\n\n";
 
                     $message .= $rod->pluck('fish_name')->implode("\n");
                 }else{
-                    $message    = $model::pluck($nameColumn)->implode("\n");
+                    $rod = Rod::offset($offset)->limit($this->limit)->get();
+                    if($rod->isEmpty()){
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                    }
+
+                    $message  = $rod->pluck('rod_name')->implode("\n");
                 }
 
                 break;
             case 'location':
                 if($val){
-                    $location = Location::join('t_fish_location as fl', 'fl.location_id', '=', 't_location.location_id')
-                                        ->join('t_fish as f', 'f.fish_id', '=', 'fl.fish_id')
-                                        ->select(
-                                            't_location.location_name',
-                                            'f.fish_name',
-                                        )
-                                        ->where('t_location.location_name', 'LIKE', '%'.$val.'%')
-                                        ->get();
+                    $sql  = Location::join('t_fish_location as fl', 'fl.location_id', '=', 't_location.location_id')
+                                    ->join('t_fish as f', 'f.fish_id', '=', 'fl.fish_id')
+                                    ->select(
+                                        't_location.location_name',
+                                        'f.fish_name',
+                                    )
+                                    ->where('t_location.location_name', 'LIKE', '%'.$val.'%');
+                    if($sql->count() == 0){
+                        return ["status" => "error", "message" => "There's no location by that name!"];
+                    }
+
+                    $location = $sql->offset($offset)->limit($this->limit)->get();
 
                     if($location->isEmpty()){
-                        $message = "There's no location by that name!";
-
-                        return ["status" => "error", "message" => $message];
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message .= $location[0]->location_name."\n\n";
 
                     $message .= $location->pluck('fish_name')->implode("\n");
                 }else{
-                    $message    = $model::pluck($nameColumn)->implode("\n");
+                    $location = Location::offset($offset)->limit($this->limit)->get();
+                    if($location->isEmpty()){
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                    }
+
+                    $message  = $location->pluck('location_name')->implode("\n");
                 }
 
                 break;
             case 'season':
                 if($val){
-                    $season = Season::join('t_fish_season as fs', 'fs.season_id', '=', 't_season.season_id')
-                                        ->join('t_fish as f', 'f.fish_id', '=', 'fs.fish_id')
-                                        ->select(
-                                            't_season.season_name',
-                                            'f.fish_name',
-                                        )
-                                        ->where('t_season.season_name', 'LIKE', '%'.$val.'%')
-                                        ->get();
+                    $sql  = Season::join('t_fish_season as fs', 'fs.season_id', '=', 't_season.season_id')
+                                    ->join('t_fish as f', 'f.fish_id', '=', 'fs.fish_id')
+                                    ->select(
+                                        't_season.season_name',
+                                        'f.fish_name',
+                                    )
+                                    ->where('t_season.season_name', 'LIKE', '%'.$val.'%');
+                    if($sql->count() == 0){
+                        return ["status" => "error", "message" => "There's no season by that name!"];
+                    }
+
+                    $season = $sql->offset($offset)->limit($this->limit)->get();
 
                     if($season->isEmpty()){
-                        $message = "There's no season by that name!";
-
-                        return ["status" => "error", "message" => $message];
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message .= $season[0]->season_name."\n\n";
 
                     $message .= $season->pluck('fish_name')->implode("\n");
                 }else{
-                    $message    = $model::pluck($nameColumn)->implode("\n");
+                    $season = Season::offset($offset)->limit($this->limit)->get();
+                    if($season->isEmpty()){
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                    }
+
+                    $message  = $season->pluck('season_name')->implode("\n");
                 }
 
                 break;
             case 'weather':
                 if($val){
-                    $weather = Weather::join('t_fish_weather as fw', 'fw.weather_id', '=', 't_weather.weather_id')
-                                        ->join('t_fish as f', 'f.fish_id', '=', 'fw.fish_id')
-                                        ->select(
-                                            't_weather.weather_name',
-                                            'f.fish_name',
-                                        )
-                                        ->where('t_weather.weather_name', 'LIKE', '%'.$val.'%')
-                                        ->get();
+                    $sql  = Weather::join('t_fish_weather as fw', 'fw.weather_id', '=', 't_weather.weather_id')
+                                    ->join('t_fish as f', 'f.fish_id', '=', 'fw.fish_id')
+                                    ->select(
+                                        't_weather.weather_name',
+                                        'f.fish_name',
+                                    )
+                                    ->where('t_weather.weather_name', 'LIKE', '%'.$val.'%');
+                    if($sql->count() == 0){
+                        return ["status" => "error", "message" => "There's no weather by that name!"];
+                    }
+
+                    $weather = $sql->offset($offset)->limit($this->limit)->get();
 
                     if($weather->isEmpty()){
-                        $message = "There's no weather by that name!";
-
-                        return ["status" => "error", "message" => $message];
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message .= $weather[0]->weather_name."\n\n";
 
                     $message .= $weather->pluck('fish_name')->implode("\n");
                 }else{
-                    $message    = $model::pluck($nameColumn)->implode("\n");
+                    $weather = Weather::offset($offset)->limit($this->limit)->get();
+                    if($weather->isEmpty()){
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                    }
+
+                    $message  = $weather->pluck('weather_name')->implode("\n");
                 }
 
                 break;
@@ -509,11 +562,43 @@ class FishingService{
         return ["status" => "success", "message" => $message];
     }
 
+    public function userRecord($twitchId, $page){
+        $offset  = ($page - 1) * $this->limit;
+        $message = "";
+        $sql     = CatchLog::join('t_fish as f', 'f.fish_id', '=', 't_catch_log.fish_id')
+                            ->select(
+                                't_catch_log.fish_id',
+                                'f.fish_name',
+                                DB::raw('MIN(t_catch_log.fish_weight) as smallest'),
+                                DB::raw('MAX(t_catch_log.fish_weight) as biggest'),
+                            )
+                            ->where('t_catch_log.user_id', '=', $twitchId);
+
+        if($sql->count() == 0){
+            return ['status' => 'error', 'message' => "You don't have any record."];
+        }
+
+        $logs   = $sql->groupBy('t_catch_log.fish_id', 'f.fish_name')
+                      ->offset($offset)
+                      ->limit($this->limit)
+                      ->get();
+
+        if($logs->isEmpty()){
+            return ['status' => 'error', 'message' => "There's nothing on page {$page}"];
+        }
+
+        foreach ($logs as $value) {
+            $message .= $value->fish_name."\nSmallest: {$value->smallest} kg\nBiggest: {$value->biggest} kg\n\n";
+        }
+
+        return ['status' => 'success', 'message' => $message];
+    }
+
     private function getFish($twitchId, $fishList){
         $equipped    = User::where('twitch_user_id', '=', $twitchId)->first();
         $fishBait    = FishBait::where('bait_id', '=', $equipped->user_bait)->pluck('bait_modifier', 'fish_id');
         $fishRod     = FishRod::where('rod_id', '=', $equipped->user_rod) ->pluck('rod_modifier', 'fish_id');
-        $bait        = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped->user_bait)->first();
+        $bait        = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped->user_bait)->where('user_id', '=', $twitchId)->first();
         $bait_amount = !$bait ? 0: $bait->item_amount;
         $current     = 0;
         $weights     = [];
@@ -584,5 +669,32 @@ class FishingService{
                         );
 
         return $sql;
+    }
+
+    private function firstTimer($twitchId, $username, $display_name){
+        $id = User::insertGetId([
+            'twitch_user_id' => $twitchId,
+            'username'       => $username,
+            'display_name'   => $display_name,
+        ]);
+
+        Inventory::fillAndInsert([
+            [
+                'user_id'       => $twitchId,
+                'item_id'       => 1,
+                'item_type'     => 'BAIT',
+                'item_amount'   => 10,
+            ],
+            [
+                'user_id'       => $twitchId,
+                'item_id'       => 1,
+                'item_type'     => 'ROD',
+                'item_amount'   => 1,
+            ],
+        ]);
+
+        $user = User::find($id);
+
+        return $user;
     }
 }
