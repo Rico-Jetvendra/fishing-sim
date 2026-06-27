@@ -14,10 +14,12 @@ class Bait extends Model{
 
     protected $fillable = [
         'bait_name',
+        'bait_type',
         'bait_description',
     ];
 
     protected $casts = [
-        'created_date' => 'datetime',
+        'bait_type'     => 'integer',
+        'created_date'  => 'datetime',
     ];
 }
