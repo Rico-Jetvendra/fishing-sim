@@ -9,8 +9,7 @@ class GameState extends Model{
 
     protected $primaryKey = 'game_state_id';
 
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = 'updated_date';
+    const CREATED_AT = 'last_change_at';
 
     protected $fillable = [
         'weather_id',
@@ -23,7 +22,6 @@ class GameState extends Model{
         'current_weather'      => 'integer',
         'current_location'     => 'integer',
         'current_season'       => 'integer',
-        'created_date'         => 'datetime',
-        'updated_date'         => 'datetime',
+        'last_change_at'       => 'datetime',
     ];
 }

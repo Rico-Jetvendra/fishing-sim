@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 27, 2026 at 10:59 AM
--- Server version: 10.4.27-MariaDB
--- PHP Version: 7.4.33
+-- Generation Time: Jun 28, 2026 at 01:23 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -262,8 +262,11 @@ CREATE TABLE `t_mutation` (
   `fish_id` int(11) NOT NULL,
   `mutation_name` varchar(100) NOT NULL,
   `mutation_description` text NOT NULL,
-  `mutation_min_weight` int(11) NOT NULL DEFAULT 0,
-  `mutation_max_weight` int(11) DEFAULT NULL,
+  `mutation_chance` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `mutation_min_weight` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `mutation_max_weight` decimal(5,2) DEFAULT NULL,
+  `mutation_min_length` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `mutation_max_length` decimal(5,2) NOT NULL,
   `created_date` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
