@@ -19,10 +19,6 @@ use App\Http\Controllers\Web\{
     WeatherController,
 };
 
-Route::get('/', function () {
-    return view('index');
-});
-
 Route::middleware(['web'])->name('web.')->group(function () {
     // Auth
     Route::get('/signin', [LoginController::class, 'signin'])->name('signin');
