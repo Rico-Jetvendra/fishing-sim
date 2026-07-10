@@ -19,6 +19,8 @@ class Fish extends Model{
         'fish_base_weight',
         'fish_min_weight',
         'fish_max_weight',
+        'fish_min_length',
+        'fish_max_length',
         'fish_description',
     ];
 
@@ -28,10 +30,22 @@ class Fish extends Model{
         'fish_base_weight' => 'integer',
         'fish_min_weight'  => 'integer',
         'fish_max_weight'  => 'integer',
+        'fish_min_length'  => 'integer',
+        'fish_max_length'  => 'integer',
         'created_date'     => 'datetime',
     ];
 
+    protected static function booted(){
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('t_fish.created_date', 'desc');
+        });
+
+        static::creating(function ($model) {
+            $model->created_date = now();
+        });
+    }
+
     public function catchLogs(){
-        return $this->hasMany(CatchLog::class, 'fish_id', 'fish_id');
+        return $this->hasMany(CatchLogs::class, 'fish_id', 'fish_id');
     }
 }

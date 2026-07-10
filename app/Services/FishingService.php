@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\{
     Fish,
     Bait,
-    CatchLog,
+    CatchLogs,
     FishBait,
     FishRod,
     FishLocation,
@@ -36,10 +36,10 @@ class FishingService{
         $game                   = GameState::latest()->first();
         $sql                    = $this->getState()->first();
 
-        $this->weather          = $game->current_weather;
-        $this->weather_name     = $sql->weather_name;
-        $this->season           = $game->current_season;
-        $this->season_name      = $sql->season_name;
+        // $this->weather          = $game->current_weather;
+        // $this->weather_name     = $sql->weather_name;
+        // $this->season           = $game->current_season;
+        // $this->season_name      = $sql->season_name;
         $this->location         = $game->current_location;
         $this->location_name    = $sql->location_name;
     }
@@ -67,9 +67,10 @@ class FishingService{
         }
 
         $catchWeight = mt_rand($catch->fish_min_weight * 10, $catch->fish_max_weight * 10) / 10;
-        $item_amount = Inventory::where('item_id', $catch->fish_id)->where('item_type', '=', 'FISH')->where('user_id', '=', $twitchId)->first()?->item_amount ?? 0;
+        $inventory = Inventory::where('item_id', $catch->fish_id)->where('item_type', '=', 'FISH')->where('user_id', '=', $twitchId)->first();
+        $item_amount = $inventory ? $inventory->item_amount ?? 0 : 0;
 
-        CatchLog::create([
+        CatchLogs::create([
             'user_id'       => $twitchId,
             'fish_id'       => $catch->fish_id,
             'fish_weight'   => $catchWeight,
@@ -355,7 +356,7 @@ class FishingService{
         return ["status" => "success", "message" => $message];
     }
 
-    public function itemList($param, $page){
+    public function itemList($param, $page = 1){
         $message = "";
         $fields  = explode("=", $param);
         $val     = count($fields) <= 1 ? "": $fields[1];
@@ -364,6 +365,13 @@ class FishingService{
         switch ($fields[0]) {
             case 'fish':
                 if($val){
+                    $total  = Fish::join('t_fish_bait as fb', 'fb.fish_id', '=', 't_fish.fish_id')
+                                ->join('t_bait as b', 'b.bait_id', '=', 'fb.bait_id')
+                                ->select(
+                                    'b.bait_name',
+                                    't_fish.fish_name',
+                                )
+                                ->where('t_fish.fish_name', 'LIKE', '%'.$val.'%')->get()->count();
                     $sql  = Fish::join('t_fish_bait as fb', 'fb.fish_id', '=', 't_fish.fish_id')
                                 ->join('t_bait as b', 'b.bait_id', '=', 'fb.bait_id')
                                 ->select(
@@ -384,19 +392,31 @@ class FishingService{
                     $message .= $fish[0]->fish_name."\n\n";
 
                     $message .= $fish->pluck('bait_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }else{
+                    $total   = Fish::get()->count();
                     $fish    = Fish::offset($offset)->limit($this->limit)->get();
                     if($fish->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message = $fish->pluck('fish_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }
 
                 break;
             case 'bait':
                 if($val){
-                    $sql  = Bait::join('t_fish_bait as fb', 'fb.bait_id', '=', 't_bait.bait_id')
+                    $total  = Bait::join('t_fish_bait as fb', 'fb.bait_id', '=', 't_bait.bait_id')
+                                ->join('t_fish as f', 'f.fish_id', '=', 'fb.fish_id')
+                                ->select(
+                                    'f.fish_name',
+                                    't_bait.bait_name',
+                                )
+                                ->where('t_bait.bait_name', 'LIKE', '%'.$val.'%')->get()->count();
+                    $sql    = Bait::join('t_fish_bait as fb', 'fb.bait_id', '=', 't_bait.bait_id')
                                 ->join('t_fish as f', 'f.fish_id', '=', 'fb.fish_id')
                                 ->select(
                                     'f.fish_name',
@@ -416,18 +436,30 @@ class FishingService{
                     $message .= $bait[0]->bait_name."\n\n";
 
                     $message .= $bait->pluck('fish_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }else{
-                    $bait = Bait::offset($offset)->limit($this->limit)->get();
+                    $total = Bait::get()->count();
+                    $bait  = Bait::offset($offset)->limit($this->limit)->get();
                     if($bait->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message  = $bait->pluck('bait_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }
 
                 break;
             case 'rod':
                 if($val){
+                    $total  = Rod::join('t_fish_rod as fr', 'fr.rod_id', '=', 't_rod.rod_id')
+                                ->join('t_fish as f', 'f.fish_id', '=', 'fr.fish_id')
+                                ->select(
+                                    'f.fish_name',
+                                    't_rod.rod_name',
+                                )
+                                ->where('t_rod.rod_name', 'LIKE', '%'.$val.'%')->get()->count();
                     $sql  = Rod::join('t_fish_rod as fr', 'fr.rod_id', '=', 't_rod.rod_id')
                                 ->join('t_fish as f', 'f.fish_id', '=', 'fr.fish_id')
                                 ->select(
@@ -448,19 +480,31 @@ class FishingService{
                     $message .= $rod[0]->rod_name."\n\n";
 
                     $message .= $rod->pluck('fish_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }else{
+                    $total = Rod::get()->count();
                     $rod = Rod::offset($offset)->limit($this->limit)->get();
                     if($rod->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message  = $rod->pluck('rod_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }
 
                 break;
             case 'location':
                 if($val){
-                    $sql  = Location::join('t_fish_location as fl', 'fl.location_id', '=', 't_location.location_id')
+                    $total  = Location::join('t_fish_location as fl', 'fl.location_id', '=', 't_location.location_id')
+                                    ->join('t_fish as f', 'f.fish_id', '=', 'fl.fish_id')
+                                    ->select(
+                                        't_location.location_name',
+                                        'f.fish_name',
+                                    )
+                                    ->where('t_location.location_name', 'LIKE', '%'.$val.'%')->get()->count();
+                    $sql    = Location::join('t_fish_location as fl', 'fl.location_id', '=', 't_location.location_id')
                                     ->join('t_fish as f', 'f.fish_id', '=', 'fl.fish_id')
                                     ->select(
                                         't_location.location_name',
@@ -480,18 +524,30 @@ class FishingService{
                     $message .= $location[0]->location_name."\n\n";
 
                     $message .= $location->pluck('fish_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }else{
+                    $total    = Location::get()->count();
                     $location = Location::offset($offset)->limit($this->limit)->get();
                     if($location->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message  = $location->pluck('location_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }
 
                 break;
             case 'season':
                 if($val){
+                    $total  = Season::join('t_fish_season as fs', 'fs.season_id', '=', 't_season.season_id')
+                                    ->join('t_fish as f', 'f.fish_id', '=', 'fs.fish_id')
+                                    ->select(
+                                        't_season.season_name',
+                                        'f.fish_name',
+                                    )
+                                    ->where('t_season.season_name', 'LIKE', '%'.$val.'%')->get()->count();
                     $sql  = Season::join('t_fish_season as fs', 'fs.season_id', '=', 't_season.season_id')
                                     ->join('t_fish as f', 'f.fish_id', '=', 'fs.fish_id')
                                     ->select(
@@ -512,18 +568,30 @@ class FishingService{
                     $message .= $season[0]->season_name."\n\n";
 
                     $message .= $season->pluck('fish_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }else{
+                    $total = Season::get()->count();
                     $season = Season::offset($offset)->limit($this->limit)->get();
                     if($season->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message  = $season->pluck('season_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }
 
                 break;
             case 'weather':
                 if($val){
+                    $total  = Weather::join('t_fish_weather as fw', 'fw.weather_id', '=', 't_weather.weather_id')
+                                    ->join('t_fish as f', 'f.fish_id', '=', 'fw.fish_id')
+                                    ->select(
+                                        't_weather.weather_name',
+                                        'f.fish_name',
+                                    )
+                                    ->where('t_weather.weather_name', 'LIKE', '%'.$val.'%')->get()->count();
                     $sql  = Weather::join('t_fish_weather as fw', 'fw.weather_id', '=', 't_weather.weather_id')
                                     ->join('t_fish as f', 'f.fish_id', '=', 'fw.fish_id')
                                     ->select(
@@ -544,13 +612,18 @@ class FishingService{
                     $message .= $weather[0]->weather_name."\n\n";
 
                     $message .= $weather->pluck('fish_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }else{
+                    $total = Weather::get()->count();
                     $weather = Weather::offset($offset)->limit($this->limit)->get();
                     if($weather->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
                     $message  = $weather->pluck('weather_name')->implode("\n");
+
+                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
                 }
 
                 break;
@@ -565,12 +638,14 @@ class FishingService{
     public function userRecord($twitchId, $page){
         $offset  = ($page - 1) * $this->limit;
         $message = "";
-        $sql     = CatchLog::join('t_fish as f', 'f.fish_id', '=', 't_catch_log.fish_id')
+        $sql     = CatchLogs::join('t_fish as f', 'f.fish_id', '=', 't_catch_log.fish_id')
                             ->select(
                                 't_catch_log.fish_id',
                                 'f.fish_name',
-                                DB::raw('MIN(t_catch_log.fish_weight) as smallest'),
-                                DB::raw('MAX(t_catch_log.fish_weight) as biggest'),
+                                DB::raw('MIN(t_catch_log.fish_weight) as lightest'),
+                                DB::raw('MAX(t_catch_log.fish_weight) as heaviest'),
+                                DB::raw('MIN(t_catch_log.fish_length) as shortest'),
+                                DB::raw('MAX(t_catch_log.fish_length) as longest'),
                             )
                             ->where('t_catch_log.user_id', '=', $twitchId);
 
@@ -660,12 +735,12 @@ class FishingService{
 
     private function getState(){
         $sql = GameState::join('t_location as l', 'l.location_id', '=', 't_game_state.current_location')
-                        ->join('t_season as s', 's.season_id', '=', 't_game_state.current_season')
-                        ->join('t_weather as w', 'w.weather_id', '=', 't_game_state.current_weather')
+                        // ->join('t_season as s', 's.season_id', '=', 't_game_state.current_season')
+                        // ->join('t_weather as w', 'w.weather_id', '=', 't_game_state.current_weather')
                         ->select(
                             'l.location_name',
-                            's.season_name',
-                            'w.weather_name',
+                            // 's.season_name',
+                            // 'w.weather_name',
                         );
 
         return $sql;

@@ -20,6 +20,16 @@ class Weather extends Model{
         'created_date' => 'datetime',
     ];
 
+    protected static function booted(){
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('t_weather.created_date', 'desc');
+        });
+
+        static::creating(function ($model) {
+            $model->created_date = now();
+        });
+    }
+
     public function fishWeathers(){
         return $this->hasMany(
             FishWeather::class,

@@ -38,7 +38,7 @@ class User extends Model{
 
     public function catchLogs(){
         return $this->hasMany(
-            CatchLog::class,
+            CatchLogs::class,
             'user_id',
             'user_id'
         );

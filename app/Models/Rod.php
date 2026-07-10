@@ -14,12 +14,23 @@ class Rod extends Model{
 
     protected $fillable = [
         'rod_name',
+        'rod_rarity',
         'rod_description',
     ];
 
     protected $casts = [
         'created_date' => 'datetime',
     ];
+
+    protected static function booted(){
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('t_rod.created_date', 'desc');
+        });
+
+        static::creating(function ($model) {
+            $model->created_date = now();
+        });
+    }
 
     public function fishRods(){
         return $this->hasMany(

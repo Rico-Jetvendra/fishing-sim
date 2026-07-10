@@ -13,12 +13,27 @@ class Location extends Model{
     const UPDATED_AT = null;
 
     protected $fillable = [
+        'city_id',
         'location_name',
+        'location_water',
+        'location_description',
     ];
 
     protected $casts = [
-        'created_date' => 'datetime',
+        'city_id'        => 'integer',
+        'location_water' => 'integer',
+        'created_date'   => 'datetime',
     ];
+
+    protected static function booted(){
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('t_location.created_date', 'desc');
+        });
+
+        static::creating(function ($model) {
+            $model->created_date = now();
+        });
+    }
 
     public function fishLocations(){
         return $this->hasMany(
