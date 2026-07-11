@@ -22,7 +22,7 @@ class FishRodController extends Controller{
         $data = $this->getData()->get();
 
         $columns = [
-            ['label' => 'Fish', 'field' => 'fish_name'],
+            ['label' => 'Rod', 'field' => 'rod_name'],
         ];
 
         $selects = $this->getSelects();
@@ -39,19 +39,19 @@ class FishRodController extends Controller{
                 $buttons = '';
 
                 $buttons .= '
-                <button class="btn btn-sm btn-warning btn-edit-relation text-white" data-id="'.$row->fish_id.'">
+                <button class="btn btn-sm btn-warning btn-edit-relation text-white" data-id="'.$row->rod_id.'">
                     <i class="bi bi-pencil"></i>
                 </button>';
 
                 $buttons .= '
-                <button class="btn btn-sm btn-danger btn-delete-relation" data-id="'.$row->fish_id.'" data-name="'.$row->fish_name.'">
+                <button class="btn btn-sm btn-danger btn-delete-relation" data-id="'.$row->rod_id.'" data-name="'.$row->rod_name.'">
                     <i class="bi bi-trash"></i>
                 </button>';
 
                 return $buttons;
             })
-            ->filterColumn('fish_name', function($query, $keyword) {
-                $query->where('f.fish_name', 'LIKE', '%'.$keyword.'%' );
+            ->filterColumn('rod_name', function($query, $keyword) {
+                $query->where('r.rod_name', 'LIKE', '%'.$keyword.'%' );
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -64,7 +64,7 @@ class FishRodController extends Controller{
                             't_fish_rod.*',
                             'f.fish_name',
                             'l.rod_name',
-                        )->where('t_fish_rod.fish_id', $id)->get();
+                        )->where('t_fish_rod.rod_id', $id)->get();
         if(!$data){
             return redirect()->back()->with('error', 'No record.');
         }
@@ -74,8 +74,8 @@ class FishRodController extends Controller{
 
     public function store(Request $request){
         $validator = Validator::make($request->all(), [
-            'fish_id'       => 'required|numeric',
-            'relation'      => 'required|string',
+            'rod_id'   => 'required|numeric',
+            'relation' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -86,11 +86,11 @@ class FishRodController extends Controller{
 
         try{
             foreach(json_decode($validated['relation']) as $value) {
-                $data = ['fish_id' => $validated['fish_id']];
+                $data = ['rod_id' => $validated['rod_id']];
 
-                $data['rod_id']        = $value->rod_id->id;
-                $data['rod_modifier']  = $value->rod_modifier;
-                $data['rod_escape']  = $value->rod_escape;
+                $data['fish_id']        = $value->fish_id->id;
+                $data['rod_modifier']   = $value->rod_modifier;
+                $data['rod_escape']     = $value->rod_escape;
 
                 FishRod::create($data);
             }
@@ -104,8 +104,8 @@ class FishRodController extends Controller{
 
     public function update(Request $request, $id){
         $validator = Validator::make($request->all(), [
-            'fish_id'       => 'required|numeric',
-            'relation'      => 'required|string',
+            'rod_id'   => 'required|numeric',
+            'relation' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -115,13 +115,13 @@ class FishRodController extends Controller{
         $validated = $validator->validated();
 
         try{
-            FishRod::where('fish_id', $id)->delete();
+            FishRod::where('rod_id', $id)->delete();
             foreach(json_decode($validated['relation']) as $value) {
-                $res                   = ['fish_id' => $validated['fish_id']];
+                $res                    = ['rod_id' => $validated['rod_id']];
 
-                $res['rod_id']        = $value->rod_id->id;
-                $res['rod_modifier']  = $value->rod_modifier;
-                $res['rod_escape']  = $value->rod_escape;
+                $res['fish_id']         = $value->fish_id->id;
+                $res['rod_modifier']    = $value->rod_modifier;
+                $res['rod_escape']      = $value->rod_escape;
 
                 FishRod::create($res);
             }
@@ -134,7 +134,7 @@ class FishRodController extends Controller{
     }
 
     public function destroy($id){
-        $data = FishRod::where('fish_id', $id);
+        $data = FishRod::where('rod_id', $id);
         if(!$data){
             return redirect()->back()->with('error', 'No record.');
         }
@@ -148,17 +148,34 @@ class FishRodController extends Controller{
     }
 
     private function getData(){
-        $sql = FishRod::join('t_fish as f', 'f.fish_id', '=', 't_fish_rod.fish_id')
+        $sql = FishRod::join('t_rod as r', 'r.rod_id', '=', 't_fish_rod.rod_id')
                         ->select(
-                            't_fish_rod.fish_id',
-                            'f.fish_name',
-                        )->groupBy('t_fish_rod.fish_id','f.fish_name',);
+                            't_fish_rod.rod_id',
+                            'r.rod_name',
+                        )->groupBy('t_fish_rod.rod_id','r.rod_name',);
 
         return $sql;
     }
 
     private function getSelects(){
-        $fish  = Fish::all();
+        $fish = Fish::join('t_fish_type as ft', 't_fish.fish_type', '=', 'ft.fish_type_id')
+                    ->join('t_fish_rarity as fr', 't_fish.fish_rarity', '=', 'fr.fish_rarity_id')
+                    ->select(
+                        't_fish.fish_id',
+                        't_fish.fish_name',
+                        DB::raw('
+                            CASE
+                                WHEN ft.water_type = 1 THEN "Freshwater"
+                                WHEN ft.water_type = 2 THEN "Brackish"
+                                ELSE "Seawater"
+                            END as water_type
+                        '),
+                        'ft.fish_type as fish_type_name',
+                        'fr.fish_rarity as fish_rarity_name',
+                        'fr.base_bite',
+                        'fr.base_escape',
+                        'fr.base_mutation',
+                    )->orderBy('t_fish.fish_name', 'ASC')->get();
         $rod   = Rod::all();
 
         return [

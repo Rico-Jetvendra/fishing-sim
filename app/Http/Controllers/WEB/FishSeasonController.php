@@ -89,7 +89,7 @@ class FishSeasonController extends Controller{
                 $data = ['fish_id' => $validated['fish_id']];
 
                 $data['season_id']        = $value->season_id->id;
-                $data['season_modifier']  = $value->season_modifier;
+                $data['season_modifier']  = $value->season_modifier == 0 ? 100 : $value->season_modifier;
 
                 FishSeason::create($data);
             }
@@ -119,7 +119,7 @@ class FishSeasonController extends Controller{
                 $res                   = ['fish_id' => $validated['fish_id']];
 
                 $res['season_id']        = $value->season_id->id;
-                $res['season_modifier']  = $value->season_modifier;
+                $res['season_modifier']  = $value->season_modifier == 0 ? 100 : $value->season_modifier;
 
                 FishSeason::create($res);
             }
@@ -156,7 +156,23 @@ class FishSeasonController extends Controller{
     }
 
     private function getSelects(){
-        $fish   = Fish::all();
+        $fish = Fish::join('t_fish_type as ft', 't_fish.fish_type', '=', 'ft.fish_type_id')
+                    ->join('t_fish_rarity as fr', 't_fish.fish_rarity', '=', 'fr.fish_rarity_id')
+                    ->select(
+                        't_fish.fish_id',
+                        't_fish.fish_name',
+                        DB::raw('
+                            CASE
+                                WHEN ft.water_type = 1 THEN "Freshwater"
+                                WHEN ft.water_type = 2 THEN "Brackish"
+                                ELSE "Seawater"
+                            END as water_type
+                        '),
+                        'fr.fish_rarity as fish_rarity_name',
+                        'fr.base_bite',
+                        'fr.base_escape',
+                        'fr.base_mutation',
+                    )->orderBy('t_fish.fish_name', 'ASC')->get();
         $season = Season::all();
 
         return [

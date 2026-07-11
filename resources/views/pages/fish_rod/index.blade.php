@@ -28,7 +28,7 @@
 </main>
 
 <div class="modal fade" id="crudModal" data-bs-backdrop="static">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
             <form method="POST" id="crudForm" onsubmit="store()">
@@ -46,11 +46,13 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-lg-12 col-md-12 mb-3">
-                            <label class="form-label" for="fish_id">Fish</label>
-                            <select class="form-select searchable-select" name="fish_id" id="fish_id" required>
-                                <option value="">-- Select Fish --</option>
-                                @foreach($selects['fish'] as $fish)
-                                    <option value="{{ $fish->fish_id }}">{{ $fish->fish_name }}</option>
+                            <label class="form-label" for="rod_id">Rod</label>
+                            <select class="form-select searchable-select" name="rod_id" id="rod_id" required>
+                                <option value="">-- Select Rod --</option>
+                                @foreach($selects['rod'] as $rod)
+                                    <option value="{{ $rod->rod_id }}">
+                                        {{ $rod->rod_name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -89,7 +91,7 @@
 </div>
 
 <div class="modal fade" id="relationModal" data-bs-backdrop="static">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -103,23 +105,21 @@
                     <input type="hidden" name="relationIndex" id="relationIndex" value="" />
                     <div class="row">
                         <div class="col-lg-12 col-md-12 mb-3">
-                            <label class="form-label" for="rod_id">Rod</label>
-                            <select class="form-select searchable-select" name="rod_id" id="rod_id" required>
-                                <option value="">-- Select Rod --</option>
-                                @foreach($selects['rod'] as $rod)
-                                    <option value="{{ $rod->rod_id }}">
-                                        {{ $rod->rod_name }}
-                                    </option>
+                            <label class="form-label" for="fish_id">Fish</label>
+                            <select class="form-select searchable-select" name="fish_id" id="fish_id" required>
+                                <option value="">-- Select Fish --</option>
+                                @foreach($selects['fish'] as $fish)
+                                    <option value="{{ $fish->fish_id }}">{{ $fish->fish_name.' ('.$fish->fish_type_name.')' }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-lg-12 col-md-12 mb-3">
                             <label class="form-label" for="rod_modifier">Modifier</label>
-                            <input type="number" class="form-control" name="rod_modifier" step="1" min="0" max="99999" id="rod_modifier" placeholder="Rod Modifier" oninput="if(this.value > 99999) this.value = 99999; if(this.value < 1) this.value = 0;"/>
+                            <input type="number" class="form-control" name="rod_modifier" step="1" min="0" max="99999" id="rod_modifier" placeholder="Rod Modifier" value="0" oninput="if(this.value > 99999) this.value = 99999; if(this.value < 1) this.value = 0;"/>
                         </div>
                         <div class="col-lg-12 col-md-12 mb-3">
                             <label class="form-label" for="rod_escape">Escape Chance</label>
-                            <input type="number" class="form-control" name="rod_escape" step="1" min="0" max="100" id="rod_escape" placeholder="Rod Chance" oninput="if(this.value > 100) this.value = 100; if(this.value < 1) this.value = 0;"/>
+                            <input type="number" class="form-control" name="rod_escape" step="1" min="0" max="100" id="rod_escape" placeholder="Rod Chance" value="0" oninput="if(this.value > 100) this.value = 100; if(this.value < 1) this.value = 0;"/>
                         </div>
                     </div>
                 </div>
@@ -166,7 +166,7 @@
         $('#modalRelationTitle').text('Add');
 
         form.trigger('reset');
-        $('#rod_id')[0].tomselect.clear();
+        $('#fish_id')[0].tomselect.clear();
     }
 
     function saveRelation(){
@@ -217,7 +217,7 @@
             tbody.append(`
                 <tr>
                     <td>${index+1}</td>
-                    <td>${relation.rod_id['name']}</td>
+                    <td>${relation.fish_id['name']}</td>
                     <td>${relation.rod_modifier}</td>
                     <td>${relation.rod_escape}</td>
                     <td>
@@ -227,6 +227,8 @@
                 </tr>
             `);
         });
+
+        $('#relationIndex').val("");
     }
 
     function editRelation(index){
@@ -238,7 +240,7 @@
 
         relationIndex.val(index);
 
-        form.find('#rod_id')[0].tomselect.setValue(item.rod_id['id']);
+        form.find('#fish_id')[0].tomselect.setValue(item.fish_id['id']);
         form.find('#rod_modifier').val(item.rod_modifier);
         form.find('#rod_escape').val(item.rod_escape);
 
@@ -318,7 +320,7 @@
 
         relations.length = 0;
         form.trigger('reset');
-        $('#fish_id')[0].tomselect.clear();
+        $('#rod_id')[0].tomselect.clear();
 
         populateRelation();
 
@@ -344,13 +346,13 @@
         $.get("{{ route('web.fishRod.edit', ':id') }}".replace(':id', id))
         .done(function(res){
             relations.length = 0;
-            $('#fish_id')[0].tomselect.setValue(res[0].fish_id);
+            $('#rod_id')[0].tomselect.setValue(res[0].rod_id);
 
             res.forEach(element => {
                 let data = {
-                    rod_id: {
-                        id: element.rod_id,
-                        name: element.rod_name
+                    fish_id: {
+                        id: element.fish_id,
+                        name: element.fish_name
                     },
                     rod_modifier: element.rod_modifier,
                     rod_escape: element.rod_escape

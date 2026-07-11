@@ -151,14 +151,30 @@ class FishBaitController extends Controller{
         $sql = FishBait::join('t_fish as f', 'f.fish_id', '=', 't_fish_bait.fish_id')
                         ->select(
                             't_fish_bait.fish_id',
-                            'f.fish_name',
-                        )->groupBy('t_fish_bait.fish_id','f.fish_name',);
+                            'f.fish_name'
+                        )->groupBy('t_fish_bait.fish_id','f.fish_name');
 
         return $sql;
     }
 
     private function getSelects(){
-        $fish = Fish::all();
+        $fish = Fish::join('t_fish_type as ft', 't_fish.fish_type', '=', 'ft.fish_type_id')
+                    ->join('t_fish_rarity as fr', 't_fish.fish_rarity', '=', 'fr.fish_rarity_id')
+                    ->select(
+                        't_fish.fish_id',
+                        't_fish.fish_name',
+                        DB::raw('
+                            CASE
+                                WHEN ft.water_type = 1 THEN "Freshwater"
+                                WHEN ft.water_type = 2 THEN "Brackish"
+                                ELSE "Seawater"
+                            END as water_type
+                        '),
+                        'fr.fish_rarity as fish_rarity_name',
+                        'fr.base_bite',
+                        'fr.base_escape',
+                        'fr.base_mutation',
+                    )->orderBy('t_fish.fish_name', 'ASC')->get();
         $bait = Bait::all();
 
         return [

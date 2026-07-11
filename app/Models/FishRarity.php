@@ -15,9 +15,25 @@ class FishRarity extends Model{
     protected $fillable = [
         'fish_rarity',
         'fish_initial',
+        'base_bite',
+        'base_escape',
+        'base_mutation',
     ];
 
     protected $casts = [
-        'created_date' => 'datetime',
+        'base_bite' => 'integer',
+        'base_escape' => 'integer',
+        'base_mutation' => 'integer',
+        'created_date' => 'datetime:d F Y H:i:s',
     ];
+
+    protected static function booted(){
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('t_fish_rarity.created_date', 'desc');
+        });
+
+        static::creating(function ($model) {
+            $model->created_date = now();
+        });
+    }
 }

@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class FishWeather extends Model{
     protected $table = 't_fish_weather';
-
     protected $primaryKey = 'fish_weather_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = null;
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'weather_id',
@@ -24,6 +22,16 @@ class FishWeather extends Model{
         'weather_modifier' => 'integer',
         'created_date'     => 'datetime',
     ];
+
+    protected static function booted(){
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('t_fish_weather.created_date', 'desc');
+        });
+
+        static::creating(function ($model) {
+            $model->created_date = now();
+        });
+    }
 
     public function fish(){
         return $this->belongsTo(Fish::class, 'fish_id', 'fish_id');

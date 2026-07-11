@@ -50,7 +50,7 @@
                             <select class="form-select searchable-select" name="fish_id" id="fish_id" required>
                                 <option value="">-- Select Fish --</option>
                                 @foreach($selects['fish'] as $fish)
-                                    <option value="{{ $fish->fish_id }}">{{ $fish->fish_name }}</option>
+                                    <option value="{{ $fish->fish_id }}" data-fish="{{ $fish }}">{{ $fish->fish_name.' ('.$fish->water_type.')' }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -103,6 +103,26 @@
                     <input type="hidden" name="relationIndex" id="relationIndex" value="" />
                     <div class="row">
                         <div class="col-lg-12 col-md-12 mb-3">
+                            <table class="table table-borderless">
+                                <thead>
+                                    <tr>
+                                        <th>Rarity</th>
+                                        <td id="fish_rarity"></td>
+                                        <th>Bite</th>
+                                        <td id="fish_base_bite"></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th>Escape</th>
+                                        <td id="fish_base_escape"></td>
+                                        <th>Mutation</th>
+                                        <td id="fish_base_mutation"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-lg-12 col-md-12 mb-3">
                             <label class="form-label" for="bait_id">Bait</label>
                             <select class="form-select searchable-select" name="bait_id" id="bait_id" required>
                                 <option value="">-- Select Bait --</option>
@@ -115,11 +135,11 @@
                         </div>
                         <div class="col-lg-12 col-md-12 mb-3">
                             <label class="form-label" for="bait_modifier">Modifier</label>
-                            <input type="number" class="form-control" name="bait_modifier" step="1" min="0" max="99999" id="bait_modifier" placeholder="Bait Modifier" oninput="if(this.value > 99999) this.value = 99999; if(this.value < 1) this.value = 0;"/>
+                            <input type="number" class="form-control" name="bait_modifier" step="1" min="0" max="99999" id="bait_modifier" placeholder="Bait Modifier" value="0" oninput="if(this.value > 99999) this.value = 99999; if(this.value < 1) this.value = 0;"/>
                         </div>
                         <div class="col-lg-12 col-md-12 mb-3">
                             <label class="form-label" for="bait_bite">Chance</label>
-                            <input type="number" class="form-control" name="bait_bite" step="1" min="0" max="100" id="bait_bite" placeholder="Bait Chance" oninput="if(this.value > 100) this.value = 100; if(this.value < 1) this.value = 0;"/>
+                            <input type="number" class="form-control" name="bait_bite" step="1" min="0" max="100" id="bait_bite" placeholder="Bait Chance" value="0" oninput="if(this.value > 100) this.value = 100; if(this.value < 1) this.value = 0;"/>
                         </div>
                     </div>
                 </div>
@@ -227,6 +247,8 @@
                 </tr>
             `);
         });
+
+        $('#relationIndex').val("");
     }
 
     function editRelation(index){
@@ -406,4 +428,15 @@
             }).then(() => $('.dataTable').DataTable().ajax.reload());
         });
     }
+
+    $('#fish_id').on('change', function() {
+        var fish    = $(this).find(':selected').data('fish');
+        var form    = $('#relationForm');
+        const modal = new bootstrap.Modal(document.getElementById('relationModal'));
+
+        form.find('#fish_rarity').text(fish.fish_rarity_name);
+        form.find('#fish_base_bite').text(fish.base_bite);
+        form.find('#fish_base_escape').text(fish.base_escape);
+        form.find('#fish_base_mutation').text(fish.base_mutation);
+    });
 </script>
