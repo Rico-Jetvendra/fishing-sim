@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Rod extends Model{
     protected $table = 't_rod';
-
     protected $primaryKey = 'rod_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = null;
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'rod_name',

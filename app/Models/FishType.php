@@ -7,11 +7,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 class FishType extends Model{
     protected $table = 't_fish_type';
-
     protected $primaryKey = 'fish_type_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = null;
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'fish_type',

@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Season extends Model{
     protected $table = 't_season';
-
     protected $primaryKey = 'season_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = null;
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'season_name',

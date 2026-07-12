@@ -6,10 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class GameState extends Model{
     protected $table = 't_game_state';
-
     protected $primaryKey = 'game_state_id';
-
-    const CREATED_AT = 'last_change_at';
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'weather_id',

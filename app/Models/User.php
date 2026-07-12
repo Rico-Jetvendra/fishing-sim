@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class User extends Model{
     protected $table = 't_user';
-
     protected $primaryKey = 'user_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = 'updated_date';
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'twitch_user_id',
@@ -18,6 +16,7 @@ class User extends Model{
         'display_name',
         'user_rod',
         'user_bait',
+        'last_fish_at'
     ];
 
     protected $casts = [
@@ -26,6 +25,7 @@ class User extends Model{
         'user_bait'      => 'integer',
         'created_date'   => 'datetime',
         'updated_date'   => 'datetime',
+        'last_fish_at'   => 'datetime',
     ];
 
     public function inventories(){

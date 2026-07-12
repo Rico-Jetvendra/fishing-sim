@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Weather extends Model{
     protected $table = 't_weather';
-
     protected $primaryKey = 'weather_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = null;
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'weather_name',

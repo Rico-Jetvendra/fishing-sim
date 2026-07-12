@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\FishingPhase;
 use Illuminate\Console\Command;
 use App\Services\FishingService;
 
@@ -69,10 +70,23 @@ class FishingCommand extends Command{
     }
 
     private function fish(){
-        $fishList = $this->fishService->catchFish($this->twitchId, $this->username, $this->display_name);
-        $message  = $fishList['status'] == 'success' ? "{$this->username} caught a " . $fishList['data']->fish_name . "! Weighing {$fishList['weight']} kg!" : $fishList['message'];
+        // Determined the fish
+        $catch = $this->fishService->catchFish($this->twitchId, $this->username, $this->display_name);
+        if($catch['status'] == 'error'){
+            $this->info($catch['message']);
+        }
 
-        $this->info($message);
+        // Check the rarity
+        if(in_array($catch['fish']->fish_rarity_id, [1,2])){
+            // Finish the catch
+            $status = $this->fishService->finishCatch($this->twitchId, $this->username, $catch);
+            if($status['status'] == 'success'){
+                $this->info($status['message']);
+            }
+        }else{
+            // Info of fish approaching
+            $this->info("A large shadow approaching your bait.");
+        }
     }
 
     private function equip($param){

@@ -6,16 +6,16 @@ use App\Models\{
     Fish,
     Bait,
     CatchLogs,
+    City,
     FishBait,
     FishRod,
     FishLocation,
-    FishRarity,
     FishSeason,
-    FishType,
     FishWeather,
     GameState,
     Inventory,
     Location,
+    Mutation,
     Rod,
     Season,
     User,
@@ -24,23 +24,22 @@ use App\Models\{
 use Illuminate\Support\Facades\DB;
 
 class FishingService{
-    public $weather;
-    public $weather_name;
-    public $season;
-    public $season_name;
-    public $location;
-    public $location_name;
+    public int $weather;
+    public string $weather_name;
+    public int $season;
+    public string $season_name;
+    public int $location;
+    public string $location_name;
     public $limit = 5;
 
     public function __construct(){
-        $game                   = GameState::latest()->first();
         $sql                    = $this->getState()->first();
 
-        // $this->weather          = $game->current_weather;
-        // $this->weather_name     = $sql->weather_name;
-        // $this->season           = $game->current_season;
-        // $this->season_name      = $sql->season_name;
-        $this->location         = $game->current_location;
+        $this->weather          = $sql->current_weather;
+        $this->weather_name     = $sql->weather_name;
+        $this->season           = $sql->current_season;
+        $this->season_name      = $sql->season_name;
+        $this->location         = $sql->current_location;
         $this->location_name    = $sql->location_name;
     }
 
@@ -61,30 +60,10 @@ class FishingService{
             return ["status" => "error", "message" => "There's no fish today."];
         }
 
-        $catch       = $this->getFish($twitchId, $fish);
-        if(!$catch){
-            return ["status" => "error", "message" => "There's no catch today."];
-        }
+        $catch = $this->getFish($twitchId, $fish);
 
-        $catchWeight = mt_rand($catch->fish_min_weight * 10, $catch->fish_max_weight * 10) / 10;
-        $inventory = Inventory::where('item_id', $catch->fish_id)->where('item_type', '=', 'FISH')->where('user_id', '=', $twitchId)->first();
-        $item_amount = $inventory ? $inventory->item_amount ?? 0 : 0;
-
-        CatchLogs::create([
-            'user_id'       => $twitchId,
-            'fish_id'       => $catch->fish_id,
-            'fish_weight'   => $catchWeight,
-        ]);
-
-        Inventory::updateOrCreate([
-            'user_id'       => $twitchId,
-            'item_id'       => $catch->fish_id,
-            'item_type'     => "FISH",
-        ], [
-            'item_amount'   => $item_amount + 1,
-        ]);
-
-        return ["status" => "success", "message" => "", "data" => $catch, "weight" => $catchWeight];
+        $catch['equipped'] = $equipped;
+        return $catch;
     }
 
     public function equipment($twitchId, $param){
@@ -105,9 +84,10 @@ class FishingService{
             ];
         }
 
+        $text = $this->combineString($fields[1]);
         switch ($fields[0]) {
             case 'bait':
-                $bait = Bait::where('bait_name', 'LIKE', '%'.$fields[1].'%')->first();
+                $bait = Bait::where('bait_name', 'LIKE', '%'.$text.'%')->first();
 
                 if(!$bait){
                     return ['status' => 'error', "message" => "There's no bait with that name!"];
@@ -126,7 +106,7 @@ class FishingService{
 
                 return ['status' => 'success', "message" => "Bait successfully changed into {$bait->bait_name}!"];
             case 'rod':
-                $rod = Rod::where('rod_name', 'LIKE', '%'.$fields[1].'%')->first();
+                $rod = Rod::where('rod_name', 'LIKE', '%'.$text.'%')->first();
 
                 if(!$rod){
                     return ['status' => 'error', "message" => "There's no rod with that name!"];
@@ -152,7 +132,8 @@ class FishingService{
     public function gameState(){
         $sql = $this->getState()->first();
 
-        return ['location' => $sql->location_name, 'season' => $sql->season_name, 'weather' => $sql->weather_name];
+        $message = "Location: {$sql->location_name} | Season: {$sql->season_name} | Weather: {$sql->weather_name}";
+        return ["status" => "success", "message" => $message];
     }
 
     public function changeState($param){
@@ -244,13 +225,13 @@ class FishingService{
                 if($fish->isEmpty()){
                     return ["status" => "error", "message" => "There's nothing on page {$page}"];
                 }
-                $messages   = "";
+                $messages = "[".($page ?? 1)."/".ceil($fishCount / $this->limit)."]: ";
 
                 foreach ($fish as $key => $value) {
-                    $messages .= $value->fish_name.': '.$value->item_amount."\n";
+                    $messages .= $value->fish_name.': '.$value->item_amount." | ";
                 }
 
-                return ['status' => 'success', "message" => $messages."\nTotal: ".$fishCount.' types of fishes'];
+                return ['status' => 'success', "message" => $messages."Total: ".$fishCount.' types of fishes'];
             case 'bait':
                 $sql        = $inv->where('item_type', '=', 'BAIT')->join('t_bait as b', 't_inventory.item_id', '=', 'b.bait_id')->select('b.bait_name', 't_inventory.item_amount');
                 $baitCount  = $sql->count();
@@ -262,13 +243,13 @@ class FishingService{
                 if($bait->isEmpty()){
                     return ["status" => "error", "message" => "There's nothing on page {$page}"];
                 }
-                $messages   = "";
+                $messages = "[".($page ?? 1)."/".ceil($baitCount / $this->limit)."]: ";
 
                 foreach ($bait as $key => $value) {
-                    $messages .= $value->bait_name.': '.$value->item_amount."\n";
+                    $messages .= $value->bait_name.': '.$value->item_amount." | ";
                 }
 
-                return ['status' => 'success', "message" => $messages."\nTotal: ".$baitCount.' types of baits'];
+                return ['status' => 'success', "message" => $messages."Total: ".$baitCount.' types of baits'];
             case 'rod':
                 $sql        = $inv->where('item_type', '=', 'ROD')->join('t_rod as r', 't_inventory.item_id', '=', 'r.rod_id')->select('r.rod_name');
                 $rodCount  = $sql->count();
@@ -280,13 +261,31 @@ class FishingService{
                 if($rod->isEmpty()){
                     return ["status" => "error", "message" => "There's nothing on page {$page}"];
                 }
-                $messages  = "";
+                $messages = "[".($page ?? 1)."/".ceil($rodCount / $this->limit)."]: ";
 
                 foreach ($rod as $key => $value) {
-                    $messages .= $value->rod_name."\n";
+                    $messages .= $value->rod_name." | ";
                 }
 
-                return ['status' => 'success', "message" => $messages."\nTotal: ".$rodCount.' types of rods'];
+                return ['status' => 'success', "message" => $messages."Total: ".$rodCount.' types of rods'];
+            case 'mutation':
+                $sql        = $inv->where('item_type', '=', 'TERAS')->join('t_mutation as f', 't_inventory.item_id', '=', 'f.mutation_id')->select('f.mutation_name', 't_inventory.item_amount');
+                $fishCount  = $sql->count();
+                if($fishCount == 0){
+                    return ["status" => "error", "message" => "You don't have any mutated fish in your possesion."];
+                }
+
+                $fish       = $sql->offset($offset)->limit($this->limit)->get();
+                if($fish->isEmpty()){
+                    return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                }
+                $messages = "[".($page ?? 1)."/".ceil($fishCount / $this->limit)."]: ";
+
+                foreach ($fish as $key => $value) {
+                    $messages .= $value->mutation_name.': '.$value->item_amount." | ";
+                }
+
+                return ['status' => 'success', "message" => $messages."Total: ".$fishCount.' types of mutated fishes'];
             default:
                 $inventory = $inv->select('t_inventory.item_type', DB::raw('COUNT(item_id) as total'))->groupBy('item_type')->get();
                 $messages  = "";
@@ -303,7 +302,7 @@ class FishingService{
     public function checkDescription($param){
         $message = "";
         $fields  = explode("=", $param);
-        $value   = count($fields) > 1 ? $fields[1]: null;
+        $value   = count($fields) > 1 ? $this->combineString($fields[1]): null;
 
         switch ($fields[0]) {
             case 'fish':
@@ -314,7 +313,7 @@ class FishingService{
                         break;
                     }
 
-                    $message = $fish->fish_description;
+                    $message = $fish->fish_name.": ".$fish->fish_description;
                     break;
                 }
                 $message = "desc fish={fish_name}: Check the desciption of that fish.";
@@ -328,7 +327,7 @@ class FishingService{
                         break;
                     }
 
-                    $message = $bait->bait_description;
+                    $message = $bait->bait_name.": ".$bait->bait_description;
                     break;
                 }
                 $message = "desc bait={bait_name}: Check the desciption of that bait.";
@@ -342,10 +341,52 @@ class FishingService{
                         break;
                     }
 
-                    $message = $rod->rod_description;
+                    $message = $rod->rod_name.": ".$rod->rod_description;
                     break;
                 }
                 $message = "desc rod={rod_name}: Check the desciption of that rod.";
+
+                break;
+            case 'location':
+                if($value){
+                    $location = Location::where('location_name', 'LIKE', '%'.$value.'%')->first();
+                    if(!$location){
+                        $message = "There's no location with that name!";
+                        break;
+                    }
+
+                    $message = $location->location_name.": ".$location->location_description;
+                    break;
+                }
+                $message = "desc location={location_name}: Check the desciption of that location.";
+
+                break;
+            case 'mutation':
+                if($value){
+                    $mutation = Mutation::where('mutation_name', 'LIKE', '%'.$value.'%')->first();
+                    if(!$mutation){
+                        $message = "There's no mutation with that name!";
+                        break;
+                    }
+
+                    $message = $mutation->mutation_name.": ".$mutation->mutation_description;
+                    break;
+                }
+                $message = "desc mutation={mutation_name}: Check the desciption of that mutation.";
+
+                break;
+            case 'city':
+                if($value){
+                    $city = City::where('city_name', 'LIKE', '%'.$value.'%')->first();
+                    if(!$city){
+                        $message = "There's no city with that name!";
+                        break;
+                    }
+
+                    $message = $city->city_name.": ".$city->city_description;
+                    break;
+                }
+                $message = "desc city={city_name}: Check the desciption of that city.";
 
                 break;
             default:
@@ -359,7 +400,7 @@ class FishingService{
     public function itemList($param, $page = 1){
         $message = "";
         $fields  = explode("=", $param);
-        $val     = count($fields) <= 1 ? "": $fields[1];
+        $val     = count($fields) <= 1 ? "": $this->combineString($fields[1]);
         $offset  = ($page - 1) * $this->limit;
 
         switch ($fields[0]) {
@@ -389,11 +430,9 @@ class FishingService{
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
-                    $message .= $fish[0]->fish_name."\n\n";
+                    $message .= $fish[0]->fish_name." [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message .= $fish->pluck('bait_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $fish->pluck('bait_name')->implode(" | ");
                 }else{
                     $total   = Fish::get()->count();
                     $fish    = Fish::offset($offset)->limit($this->limit)->get();
@@ -401,9 +440,9 @@ class FishingService{
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
-                    $message = $fish->pluck('fish_name')->implode("\n");
+                    $message = "Fish [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $fish->pluck('fish_name')->implode(" | ");
                 }
 
                 break;
@@ -433,21 +472,18 @@ class FishingService{
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
 
-                    $message .= $bait[0]->bait_name."\n\n";
+                    $message .= $bait[0]->bait_name." [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message .= $bait->pluck('fish_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $bait->pluck('fish_name')->implode(" | ");
                 }else{
                     $total = Bait::get()->count();
                     $bait  = Bait::offset($offset)->limit($this->limit)->get();
                     if($bait->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message = "Bait [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message  = $bait->pluck('bait_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $bait->pluck('bait_name')->implode(" | ");
                 }
 
                 break;
@@ -476,22 +512,18 @@ class FishingService{
                     if($rod->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message .= $rod[0]->rod_name." [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message .= $rod[0]->rod_name."\n\n";
-
-                    $message .= $rod->pluck('fish_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $rod->pluck('fish_name')->implode(" | ");
                 }else{
                     $total = Rod::get()->count();
                     $rod = Rod::offset($offset)->limit($this->limit)->get();
                     if($rod->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message = "Rod [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message  = $rod->pluck('rod_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $rod->pluck('rod_name')->implode(" | ");
                 }
 
                 break;
@@ -520,22 +552,45 @@ class FishingService{
                     if($location->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message .= $location[0]->location_name." [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message .= $location[0]->location_name."\n\n";
-
-                    $message .= $location->pluck('fish_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $location->pluck('fish_name')->implode(" | ");
                 }else{
                     $total    = Location::get()->count();
                     $location = Location::offset($offset)->limit($this->limit)->get();
                     if($location->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message = "Location [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message  = $location->pluck('location_name')->implode("\n");
+                    $message .= $location->pluck('location_name')->implode(" | ");
+                }
 
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                break;
+            case 'mutation':
+                if($val){
+                    $sql    = Mutation::join('t_fish as f', 'f.fish_id', '=', 't_mutation.fish_id')
+                                    ->select(
+                                        't_mutation.mutation_name',
+                                        'f.fish_name',
+                                    )
+                                    ->where('t_mutation.mutation_name', 'LIKE', '%'.$val.'%');
+                    if($sql->count() == 0){
+                        return ["status" => "error", "message" => "There's no mutation by that name!"];
+                    }
+
+                    $mutation = $sql->first();
+
+                    $message .= $mutation->mutation_name." mutated from ".$mutation->fish_name;
+                }else{
+                    $total    = Mutation::get()->count();
+                    $mutation = Mutation::offset($offset)->limit($this->limit)->get();
+                    if($mutation->isEmpty()){
+                        return ["status" => "error", "message" => "There's nothing on page {$page}"];
+                    }
+                    $message = "Mutation [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
+
+                    $message .= $mutation->pluck('mutation_name')->implode(" | ");
                 }
 
                 break;
@@ -564,22 +619,18 @@ class FishingService{
                     if($season->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message .= $season[0]->season_name." [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message .= $season[0]->season_name."\n\n";
-
-                    $message .= $season->pluck('fish_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $season->pluck('fish_name')->implode(" | ");
                 }else{
                     $total = Season::get()->count();
                     $season = Season::offset($offset)->limit($this->limit)->get();
                     if($season->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message = "Season [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message  = $season->pluck('season_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $season->pluck('season_name')->implode(" | ");
                 }
 
                 break;
@@ -608,22 +659,18 @@ class FishingService{
                     if($weather->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message .= $weather[0]->weather_name." [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message .= $weather[0]->weather_name."\n\n";
-
-                    $message .= $weather->pluck('fish_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $weather->pluck('fish_name')->implode(" | ");
                 }else{
                     $total = Weather::get()->count();
                     $weather = Weather::offset($offset)->limit($this->limit)->get();
                     if($weather->isEmpty()){
                         return ["status" => "error", "message" => "There's nothing on page {$page}"];
                     }
+                    $message = "Weather [".($page ?? 1)."/".ceil($total / $this->limit)."] : ";
 
-                    $message  = $weather->pluck('weather_name')->implode("\n");
-
-                    $message .= "\n\nPage : ".($page ?? 1).' of '.ceil($total / $this->limit);
+                    $message .= $weather->pluck('weather_name')->implode(" | ");
                 }
 
                 break;
@@ -636,12 +683,23 @@ class FishingService{
     }
 
     public function userRecord($twitchId, $page){
-        $offset  = ($page - 1) * $this->limit;
-        $message = "";
-        $sql     = CatchLogs::join('t_fish as f', 'f.fish_id', '=', 't_catch_log.fish_id')
+        $limit   = 2;
+        $offset  = ($page - 1) * $limit;
+        $sql     = CatchLogs::leftJoin('t_fish as f', 'f.fish_id', '=', 't_catch_log.fish_id')
+                            ->leftJoin('t_mutation as m', 'm.mutation_id', '=', 't_catch_log.fish_id')
                             ->select(
-                                't_catch_log.fish_id',
-                                'f.fish_name',
+                                DB::raw('
+                                    CASE
+                                        WHEN t_catch_log.is_teras = 1 THEN m.mutation_id
+                                        ELSE f.fish_id
+                                    END as fish_id
+                                '),
+                                DB::raw('
+                                    CASE
+                                        WHEN t_catch_log.is_teras = 1 THEN m.mutation_name
+                                        ELSE f.fish_name
+                                    END as fish_name
+                                '),
                                 DB::raw('MIN(t_catch_log.fish_weight) as lightest'),
                                 DB::raw('MAX(t_catch_log.fish_weight) as heaviest'),
                                 DB::raw('MIN(t_catch_log.fish_length) as shortest'),
@@ -649,104 +707,106 @@ class FishingService{
                             )
                             ->where('t_catch_log.user_id', '=', $twitchId);
 
-        if($sql->count() == 0){
+        $catch_count = $sql->count();
+        if($catch_count == 0){
             return ['status' => 'error', 'message' => "You don't have any record."];
         }
 
-        $logs   = $sql->groupBy('t_catch_log.fish_id', 'f.fish_name')
+        $logs = $sql->groupBy('t_catch_log.fish_id', 'f.fish_name', 't_catch_log.is_teras', 'm.mutation_id', 'f.fish_id', 'm.mutation_name')
                       ->offset($offset)
-                      ->limit($this->limit)
+                      ->limit($limit)
                       ->get();
 
         if($logs->isEmpty()){
             return ['status' => 'error', 'message' => "There's nothing on page {$page}"];
         }
 
+        $message = "[".($page ?? 1)."/".ceil($catch_count / $limit)."]: ";
         foreach ($logs as $value) {
-            $message .= $value->fish_name."\nSmallest: {$value->smallest} kg\nBiggest: {$value->biggest} kg\n\n";
+            $message .= $value->fish_name." [Biggest: {$value->heaviest} kg | Longest: {$value->longest} cm] ";
         }
 
         return ['status' => 'success', 'message' => $message];
     }
 
-    private function getFish($twitchId, $fishList){
-        $equipped    = User::where('twitch_user_id', '=', $twitchId)->first();
-        $fishBait    = FishBait::where('bait_id', '=', $equipped->user_bait)->pluck('bait_modifier', 'fish_id');
-        $fishRod     = FishRod::where('rod_id', '=', $equipped->user_rod) ->pluck('rod_modifier', 'fish_id');
-        $bait        = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped->user_bait)->where('user_id', '=', $twitchId)->first();
-        $bait_amount = !$bait ? 0: $bait->item_amount;
-        $current     = 0;
-        $weights     = [];
-        $maxWeight   = 0;
+    public function finishCatch($twitchId, $username, $catch){
+        $equipped    = $catch['equipped'];
 
-        foreach ($fishList as $fish) {
-            $weight = $fish->fish_base_weight + ($fishBait[$fish->fish_id] ?? 0) + ($fishRod[$fish->fish_id] ?? 0);
+        $catchWeight = round($this->randomFloat($catch['fish']['fish_min_weight'], $catch['fish']['fish_max_weight']), 2);
+        $ratio       = ($catchWeight - $catch['fish']['fish_min_weight']) / ($catch['fish']['fish_max_weight'] - $catch['fish']['fish_min_weight']) ?? 0.1;
+        $catchLength = round($catch['fish']['fish_min_length'] + ($ratio * ($catch['fish']['fish_max_length'] - $catch['fish']['fish_min_length'])), 2);
+        $inventory   = Inventory::where('item_id', $catch['fish']['fish_id'])->where('item_type', '=', 'FISH')->where('user_id', '=', $twitchId)->first();
+        $item_amount = $inventory ? $inventory->item_amount ?? 0 : 0;
 
-            $weights[$fish->fish_id] = $weight;
-            $maxWeight += $weight;
+        CatchLogs::create([
+            'user_id'       => $twitchId,
+            'fish_id'       => $catch['fish']['fish_id'],
+            'fish_weight'   => $catchWeight,
+            'fish_length'   => $catchLength,
+            'bait_id'       => $equipped['user_bait'],
+            'rod_id'        => $equipped['user_rod'],
+            'location_id'   => $this->location,
+            'season_id'     => $this->season,
+            'weather_id'    => $this->weather,
+            'is_teras'      => $catch['fish']['is_teras'],
+        ]);
+
+        Inventory::updateOrCreate([
+            'user_id'       => $twitchId,
+            'item_id'       => $catch['fish']['fish_id'],
+            'item_type'     => $catch['fish']['is_teras'] ? "TERAS": "FISH",
+        ], [
+            'item_amount'   => $item_amount + 1,
+        ]);
+
+        $message = " caught a " . $catch['fish']['fish_name'] . "! Weighing {$catchWeight} kg and {$catchLength} cm long!";
+        if($catch['fish']['is_teras']){
+            $message = " caught a mutated ".$catch['fish']['mutated_from']." named {$catch['fish']['fish_name']}! Weighing {$catchWeight} kg and {$catchLength} cm long!";
+        }
+        return ["status" => "success", "message" => $message];
+    }
+
+    public function phase2($twitchId, $catch){
+        $equipped       = $catch['equipped'];
+        $fish           = $catch['fish'];
+
+        $fishBite       = FishBait::where('bait_id', '=', $equipped['user_bait'])->where('fish_id', '=', $fish['fish_id'])->pluck('bait_bite', 'fish_id');
+        $bite           = $fish['base_bite'] + ($fishBite[$fish['fish_id']] ?? 0);
+
+        $bait           = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped['user_bait'])->where('user_id', '=', $twitchId)->first();
+        $bait_amount    = !$bait ? 0: $bait->item_amount;
+
+        $isBiting  = mt_rand(1, 100) <= $bite;
+        if(!$isBiting){
+            return ["status" => "error", "message" => "The {$fish['fish_name']} is not biting."];
         }
 
-        $roll = rand(1, $maxWeight);
+        $bait->update([
+            'item_amount'  => $bait_amount - 1,
+            'updated_date' => now()
+        ]);
 
-        foreach($fishList as $fish){
-            $current += $weights[$fish->fish_id];
+        return ["status" => "success", "message" => "The {$fish['fish_name']} is biting!", "fish" => $catch];
+    }
 
-            if($roll <= $current){
-                $bait->update([
-                    'item_amount' => $bait_amount - 1,
-                    'updated_date' => now()
-                ]);
+    public function phase3($twitchId, $catch){
+        $equipped   = $catch['equipped'];
+        $fish       = $catch['fish'];
 
-                return $fish;
-            }
+        $fishEscape = FishRod::where('rod_id', '=', $equipped['user_rod'])->where('fish_id', '=', $fish['fish_id'])->pluck('rod_escape', 'fish_id');
+        $escape     = $fish['base_escape'] - ($fishEscape[$fish['fish_id']] ?? 0);
+
+        $isEscape   = mt_rand(1, 100) <= $escape;
+        if(!$isEscape){
+            return ["status" => "error", "message" => "The {$fish['fish_name']} is escape."];
         }
 
-        return null;
+        $user = User::where('twitch_user_id', $twitchId)->first();
+
+        return $this->finishCatch($twitchId, $user->username, $catch);
     }
 
-    private function getSql(){
-        $sql = Fish::join('t_fish_location as fl', 'fl.fish_id', '=', 't_fish.fish_id')
-                    ->join('t_fish_season as fs', 'fs.fish_id', '=', 't_fish.fish_id')
-                    ->join('t_fish_weather as fw', 'fw.fish_id', '=', 't_fish.fish_id')
-                    ->join('t_fish_type as ft', 'ft.fish_type_id', '=', 't_fish.fish_type')
-                    ->join('t_fish_rarity as fr', 'fr.fish_rarity_id', '=', 't_fish.fish_rarity')
-                    ->select(
-                        't_fish.fish_id',
-                        't_fish.fish_name',
-                        't_fish.fish_type',
-                        't_fish.fish_rarity',
-                        't_fish.fish_base_weight',
-                        't_fish.fish_min_weight',
-                        't_fish.fish_max_weight',
-                        't_fish.fish_description',
-                        'fl.location_modifier',
-                        'fs.season_modifier',
-                        'fw.weather_modifier',
-                        'ft.fish_type',
-                        'fr.fish_rarity',
-                        'fr.fish_initial',
-                    )
-                    ->where('fl.location_id', $this->location)
-                    ->where('fs.season_id', $this->season)
-                    ->where('fw.weather_id', $this->weather);
-
-        return $sql;
-    }
-
-    private function getState(){
-        $sql = GameState::join('t_location as l', 'l.location_id', '=', 't_game_state.current_location')
-                        // ->join('t_season as s', 's.season_id', '=', 't_game_state.current_season')
-                        // ->join('t_weather as w', 'w.weather_id', '=', 't_game_state.current_weather')
-                        ->select(
-                            'l.location_name',
-                            // 's.season_name',
-                            // 'w.weather_name',
-                        );
-
-        return $sql;
-    }
-
-    private function firstTimer($twitchId, $username, $display_name){
+    public function firstTimer(int $twitchId, string $username, string $display_name){
         $id = User::insertGetId([
             'twitch_user_id' => $twitchId,
             'username'       => $username,
@@ -771,5 +831,145 @@ class FishingService{
         $user = User::find($id);
 
         return $user;
+    }
+
+    private function getFish($twitchId, $fishList){
+        $equipped       = User::where('twitch_user_id', '=', $twitchId)->first();
+
+        $fishBait       = FishBait::where('bait_id', '=', $equipped->user_bait)->pluck('bait_modifier', 'fish_id');
+        $fishRod        = FishRod::where('rod_id', '=', $equipped->user_rod) ->pluck('rod_modifier', 'fish_id');
+        $fishLocation   = FishLocation::where('location_id', '=', $this->location) ->pluck('location_modifier', 'fish_id');
+        $fishMutation   = FishLocation::where('location_id', '=', $this->location) ->pluck('location_mutation', 'fish_id');
+        $fishSeason     = FishSeason::where('season_id', '=', $this->season) ->pluck('season_modifier', 'fish_id');
+        $fishWeather    = FishWeather::where('weather_id', '=', $this->weather) ->pluck('weather_modifier', 'fish_id');
+        $fishWutation   = FishWeather::where('weather_id', '=', $this->weather) ->pluck('weather_mutation', 'fish_id');
+
+        $current        = 0;
+        $maxWeight      = 0;
+
+        $mutations      = [];
+        $weights        = [];
+
+        foreach ($fishList as $fish) {
+            $weight     = $fish->fish_base_weight + ($fishBait[$fish->fish_id] ?? 0) + ($fishRod[$fish->fish_id] ?? 0) + ($fishLocation[$fish->fish_id] ?? 0) + ($fishSeason[$fish->fish_id] ?? 0) + ($fishWeather[$fish->fish_id] ?? 0);
+            $mutation   = $fish->base_mutation + ($fishMutation[$fish->fish_id] ?? 0) + ($fishWutation[$fish->fish_id] ?? 0);
+
+            $mutations[$fish->fish_id]  = $mutation;
+            $weights[$fish->fish_id]    = $weight;
+
+            $maxWeight += $weight;
+        }
+
+        $roll = rand(1, $maxWeight);
+
+        foreach($fishList as $fish){
+            $current += $weights[$fish->fish_id];
+
+            if($roll <= $current){
+                $isMutated = mt_rand(1, 100) <= $mutations[$fish->fish_id];
+                if($isMutated){
+                    return ["status" => "success","fish" => $this->mutationFish($fish->fish_id)];
+                }
+
+                $fish['is_teras'] = false;
+                return ["status" => "success","fish" => $fish];
+            }
+        }
+
+        return ["status" => "error", "message" => "There's no catch today."];
+    }
+
+    private function getState(){
+        $sql = GameState::join('t_location as l', 'l.location_id', '=', 't_game_state.current_location')
+                        ->join('t_season as s', 's.season_id', '=', 't_game_state.current_season')
+                        ->join('t_weather as w', 'w.weather_id', '=', 't_game_state.current_weather')
+                        ->select(
+                            'l.location_id as current_location',
+                            'l.location_name',
+                            's.season_id as current_season',
+                            's.season_name',
+                            'w.weather_id as current_weather',
+                            'w.weather_name',
+                        );
+
+        return $sql;
+    }
+
+    private function combineString($string){
+        return implode(" ", explode("_", $string));
+    }
+
+    private function randomFloat($min, $max, $decimals = 2) {
+        $scale = pow(10, $decimals);
+        return mt_rand($min * $scale, $max * $scale) / $scale;
+    }
+
+    private function getSql(){
+        $sql = Fish::join('t_fish_location as fl', 'fl.fish_id', '=', 't_fish.fish_id')
+                    ->join('t_location as l', 'fl.location_id', '=', 'l.location_id')
+                    ->join('t_fish_type as ft', 'ft.fish_type_id', '=', 't_fish.fish_type')
+                    ->join('t_fish_rarity as fr', 'fr.fish_rarity_id', '=', 't_fish.fish_rarity')
+                    ->select(
+                        'l.location_name',
+                        't_fish.fish_id',
+                        't_fish.fish_name',
+                        't_fish.fish_type',
+                        't_fish.fish_rarity',
+                        't_fish.fish_base_weight',
+                        't_fish.fish_min_weight',
+                        't_fish.fish_max_weight',
+                        't_fish.fish_min_length',
+                        't_fish.fish_max_length',
+                        't_fish.fish_description',
+                        'fl.location_modifier',
+                        'ft.fish_type',
+                        'fr.fish_rarity_id',
+                        'fr.fish_rarity',
+                        'fr.fish_initial',
+                        'fr.base_bite',
+                        'fr.base_escape',
+                        'fr.base_mutation',
+                    )
+                    ->where('fl.location_id', $this->location);
+
+        return $sql;
+    }
+
+    private function mutationFish(int $fish_id){
+        $mutations = Mutation::join('t_fish as f', 'f.fish_id', '=', 't_mutation.fish_id')
+                            ->join('t_fish_rarity as fr', 'fr.fish_rarity_id', '=', 'f.fish_rarity')
+                            ->select(
+                                'mutation_id as fish_id',
+                                'f.fish_name as mutated_from',
+                                'fr.base_bite',
+                                'fr.base_escape',
+                                'f.fish_rarity as fish_rarity_id',
+                                'mutation_name as fish_name',
+                                'mutation_description as fish_description',
+                                'mutation_min_weight as fish_min_weight',
+                                'mutation_max_weight as fish_max_weight',
+                                'mutation_min_length as fish_min_length',
+                                'mutation_max_length as fish_max_length',
+                                'mutation_chance',
+                            )->where('t_mutation.fish_id', $fish_id)->get();
+
+        $totalChance = $mutations->sum('mutation_chance');
+
+        $roll = mt_rand(1, $totalChance * 100); // 100 = 2 decimal places
+
+        $current = 0;
+        $selectedMutation = null;
+
+        foreach ($mutations as $mutation) {
+            $current += $mutation->mutation_chance * 100;
+
+            if ($roll <= $current) {
+                $selectedMutation = $mutation;
+                $selectedMutation['is_teras'] = true;
+                break;
+            }
+        }
+
+        return $selectedMutation;
     }
 }

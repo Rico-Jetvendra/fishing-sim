@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Inventory extends Model{
     protected $table = 't_inventory';
-
     protected $primaryKey = 'inventory_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = 'updated_date';
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'user_id',

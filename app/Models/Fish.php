@@ -26,10 +26,10 @@ class Fish extends Model{
         'fish_type'        => 'integer',
         'fish_rarity'      => 'integer',
         'fish_base_weight' => 'integer',
-        'fish_min_weight'  => 'integer',
-        'fish_max_weight'  => 'integer',
-        'fish_min_length'  => 'integer',
-        'fish_max_length'  => 'integer',
+        'fish_min_weight'  => 'decimal:2',
+        'fish_max_weight'  => 'decimal:2',
+        'fish_min_length'  => 'decimal:2',
+        'fish_max_length'  => 'decimal:2',
         'created_date'     => 'datetime',
     ];
 

@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model{
     protected $table = 't_location';
-
     protected $primaryKey = 'location_id';
-
-    const CREATED_AT = 'created_date';
-    const UPDATED_AT = null;
+    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'city_id',
