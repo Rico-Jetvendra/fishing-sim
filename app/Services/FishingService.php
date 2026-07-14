@@ -775,7 +775,7 @@ class FishingService{
         if($catch['fish']['is_teras']){
             $message = " caught a mutated ".$catch['fish']['mutated_from']." named {$catch['fish']['fish_name']}! Weighing {$catchWeight} kg and {$catchLength} cm long!";
         }
-        return ["status" => "success", "message" => $message];
+        return ["status" => "success", "message" => $message, "overlays" => $this->recordLog()];
     }
 
     public function phase2($twitchId, $catch){
@@ -983,5 +983,38 @@ class FishingService{
         }
 
         return $selectedMutation;
+    }
+
+    private function recordLog(){
+        $heaviest = $this->getRecord()->orderBy('fish_weight', 'DESC')->first() ?? [];
+        $lightest = $this->getRecord()->orderBy('fish_weight', 'ASC')->first() ?? [];
+        $shortest = $this->getRecord()->orderBy('fish_length', 'DESC')->first() ?? [];
+        $longest  = $this->getRecord()->orderBy('fish_length', 'ASC')->first() ?? [];
+
+        return [
+            "heaviest" => $heaviest,
+            "lightest" => $lightest,
+            "shortest" => $shortest,
+            "longest"  => $longest,
+        ];
+    }
+
+    private function getRecord(){
+        $sql = CatchLogs::join('t_user as u', 'u.twitch_user_id', '=', 't_catch_log.user_id')
+                        ->leftJoin('t_fish as f', 'f.fish_id', '=', 't_catch_log.fish_id')
+                        ->leftJoin('t_mutation as m', 'm.mutation_id', '=', 't_catch_log.fish_id')
+                        ->select(
+                            'u.display_name',
+                            DB::raw('
+                                CASE
+                                    WHEN t_catch_log.is_teras = 1 THEN m.mutation_name
+                                    ELSE f.fish_name
+                                END as fish_name
+                            '),
+                            't_catch_log.fish_weight',
+                            't_catch_log.fish_length',
+                        )->whereDate('t_catch_log.created_date', today());
+
+        return $sql;
     }
 }

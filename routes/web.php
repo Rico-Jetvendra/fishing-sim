@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\{
     LocationController,
     LoginController,
     MutationController,
+    OverlayController,
     RodController,
     WeatherController,
 };
@@ -24,6 +25,10 @@ Route::middleware(['web'])->name('web.')->group(function () {
     Route::get('/signin', [LoginController::class, 'signin'])->name('signin');
     Route::post('/login', [LoginController::class, 'login'])->name('login');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // Overlay
+    Route::get('/record', [OverlayController::class, 'record'])->name('record');
+    Route::get('/tips', [OverlayController::class, 'tips'])->name('tips');
 
     // Checking Session
     Route::middleware(['check.session'])->group(function () {
