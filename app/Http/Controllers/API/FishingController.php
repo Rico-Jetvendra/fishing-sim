@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Inventory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\FishingService;
@@ -105,7 +106,7 @@ class FishingController extends Controller{
     public function equip(Request $request){
         $validator = Validator::make($request->all(), [
             'twitchId' => 'required|numeric',
-            'message' => 'required|string',
+            'message'  => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -204,5 +205,19 @@ class FishingController extends Controller{
         $msg = $this->fishService->gameState();
 
         return response()->json($msg);
+    }
+
+    public function reduceBaitAmount($id){
+        $user = User::where('twitch_user_id', $id)->first();
+        if(!$user){
+            return response()->json(['status' => 'error', "message" => "User not found!"]);
+        }
+
+        $inventory = Inventory::where('user_id', $id)->where('item_id', $user->user_bait)->where('item_type', 'BAIT')->first();
+        $inventory->update([
+            "item_amount" => $inventory->item_amount - 1
+        ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Successfully reduce thr bait amount!']);
     }
 }

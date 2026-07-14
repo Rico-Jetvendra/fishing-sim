@@ -44,18 +44,18 @@ class FishingService{
     }
 
     public function catchFish($twitchId, $username, $display_name){
-        $equipped    = User::where('twitch_user_id', '=', intval($twitchId))->first();
+        $equipped = User::where('twitch_user_id', '=', intval($twitchId))->first();
         if(!$equipped){
             $equipped = $this->firstTimer($twitchId, $username, $display_name);
         }
 
-        $bait        = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped->user_bait)->where('user_id', '=', $twitchId)->first();
+        $bait = Inventory::where('item_type', '=', 'BAIT')->where('item_id', '=', $equipped->user_bait)->where('user_id', '=', $twitchId)->first();
         $bait_amount = !$bait ? 0: $bait->item_amount;
         if($bait_amount <= 0){
             return ["status" => "error", "message" => "You are running out of bait."];
         }
 
-        $fish        = $this->getSql()->get();
+        $fish = $this->getSql()->get();
         if(!$fish){
             return ["status" => "error", "message" => "There's no fish today."];
         }
@@ -144,22 +144,32 @@ class FishingService{
             case 'location':
                 if(!$value){
                     $rand_loc = Location::where('location_id', '!=', $this->location)->inRandomOrder()->first();
-
                     if(!$rand_loc){
                         return ['status' => 'error', 'message' => "Unknown location. The party remains at {$this->location_name}."];
                     }
-
-                    GameState::first()->update(['current_location' => $rand_loc->location_id]);
+                    $season  = $rand_loc->city_id == 3 ? collect([5, 6])->random() : collect([1, 2, 3, 4])->random();
+                    $weather = Weather::inRandomOrder()->value('weather_id');
+                    GameState::first()->update([
+                        'current_location'  => $rand_loc->location_id,
+                        'current_season'    => $season,
+                        'current_weather'   => $weather,
+                    ]);
 
                     return ['status' => 'success', 'message' => "The party traveled to {$rand_loc->location_name}."];
                 }
                 $location = Location::where('location_name', 'LIKE', '%'.$value.'%')->first();
-
                 if(!$location){
                     return ['status' => 'error', 'message' => "Unknown location. The party remains at {$this->location_name}."];
                 }
 
-                GameState::first()->update(['current_location' => $location->location_id]);
+                $season  = $location->city_id == 3 ? collect([5, 6])->random() : collect([1, 2, 3, 4])->random();
+                $weather = Weather::where('weather_id', '!=', $this->weather)->inRandomOrder()->value('weather_id');
+
+                GameState::first()->update([
+                    'current_location'  => $location->location_id,
+                    'current_season'    => $season,
+                    'current_weather'   => $weather,
+                ]);
 
                 return ['status' => 'success', 'message' => "The party traveled to {$location->location_name}."];
             case 'season':
@@ -170,17 +180,19 @@ class FishingService{
                         return ['status' => 'error', 'message' => "Unknown season. The world remains in {$this->season_name}."];
                     }
 
-                    GameState::first()->update(['current_season' => $rand_sea->season_id]);
+                    $weather = Weather::where('weather_id', '!=', $this->weather)->inRandomOrder()->value('weather_id');
+                    GameState::first()->update(['current_season' => $rand_sea->season_id, 'current_weather' => $weather]);
 
                     return ['status' => 'success', 'message' => "The season changed into {$rand_sea->season_name}."];
                 }
                 $season = Season::where('season_name', 'LIKE', '%'.$value.'%')->first();
 
                 if(!$season){
-                        return ['status' => 'error', 'message' => "Unknown season. The world remains in {$this->season_name}."];
+                    return ['status' => 'error', 'message' => "Unknown season. The world remains in {$this->season_name}."];
                 }
 
-                GameState::first()->update(['current_season' => $season->season_id]);
+                $weather = Weather::inRandomOrder()->value('weather_id');
+                GameState::first()->update(['current_season' => $season->season_id, 'current_weather' => $weather]);
 
                 return ['status' => 'success', 'message' => "The season changed into {$season->season_name}."];
             case 'weather':

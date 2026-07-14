@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\{
     FishingController,
+    RedeemController,
 };
 
 Route::middleware('bot.auth')->group(function () {
@@ -11,6 +12,7 @@ Route::middleware('bot.auth')->group(function () {
     Route::get('/state', [FishingController::class, 'state']);
     Route::get('/inv', [FishingController::class, 'inv']);
     Route::get('/record', [FishingController::class, 'record']);
+    Route::get('/redeem', [RedeemController::class, 'index']);
 
     Route::post('/change', [FishingController::class, 'change']);
     Route::post('/equip', [FishingController::class, 'equip']);
@@ -18,6 +20,8 @@ Route::middleware('bot.auth')->group(function () {
     Route::post('/phase2', [FishingController::class, 'phase2']);
     Route::post('/phase3', [FishingController::class, 'phase3']);
     Route::post('/finish', [FishingController::class, 'finish']);
+
+    Route::put('/bait/{id}', [FishingController::class, 'reduceBaitAmount']);
 });
 
 ?>
