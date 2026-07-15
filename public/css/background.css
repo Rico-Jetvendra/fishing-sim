@@ -1,0 +1,823 @@
+/*==========================
+    RESET
+==========================*/
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+
+  color: #efe4c8;
+}
+
+/*==========================
+    COLORS
+==========================*/
+
+:root {
+  --wood-dark: #2b1f16;
+  --wood: #4f3826;
+  --wood-light: #70533a;
+
+  --paper: #ece2ca;
+  --paper-dark: #d2c2a3;
+
+  --gold: #d8bf73;
+  --gold-dark: #8d6d2e;
+
+  --bronze: #7f6032;
+
+  --border: #2d2015;
+
+  --shadow: rgba(0, 0, 0, 0.45);
+}
+
+/*==========================
+    BODY
+==========================*/
+
+body {
+  background: radial-gradient(circle at top, #6d6d55, #54543e 55%, #454534);
+}
+
+/*==========================
+    OVERLAY
+==========================*/
+
+.overlay {
+  width: 1920px;
+  height: 1080px;
+
+  margin: auto;
+
+  position: relative;
+}
+
+/*==========================
+    OUTER FRAME
+==========================*/
+
+.frame {
+  position: absolute;
+
+  inset: 18px;
+
+  border-radius: 26px;
+
+  background: linear-gradient(180deg, #5e452f, #3f2d1f);
+
+  border: 4px solid var(--gold-dark);
+
+  box-shadow: 0 0 0 2px #c9ab62, inset 0 0 0 2px #2d2116,
+    inset 0 0 25px rgba(255, 255, 255, 0.08), 0 20px 50px rgba(0, 0, 0, 0.55);
+
+  overflow: hidden;
+}
+
+/*==========================
+    WOOD GRAIN
+==========================*/
+
+.frame::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.06;
+
+  background: repeating-linear-gradient(
+    15deg,
+    transparent 0px,
+
+    transparent 10px,
+
+    rgba(255, 255, 255, 0.4) 11px,
+
+    transparent 12px,
+
+    transparent 24px
+  );
+
+  pointer-events: none;
+}
+
+/*==========================
+    GOLD INNER BORDER
+==========================*/
+
+.frame::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 14px;
+
+  border-radius: 16px;
+
+  border: 2px solid rgba(235, 210, 140, 0.5);
+
+  pointer-events: none;
+}
+
+/*==========================
+    TOP BAR
+==========================*/
+
+.top-bar {
+  width: 100%;
+  height: 92px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding-left: 55px;
+  padding-right: 55px;
+}
+
+/*==========================
+    MAIN LAYOUT
+==========================*/
+
+.main-layout {
+  display: flex;
+
+  gap: 36px;
+
+  padding: 5px 45px 0 45px;
+
+  margin-bottom: 20px;
+}
+
+/*==========================
+    LEFT PANEL
+==========================*/
+
+.left-panel {
+  flex: 1;
+}
+
+/*==========================
+    RIGHT PANEL
+==========================*/
+
+.right-panel {
+  width: 355px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 25px;
+}
+
+/*==========================
+    GAME FRAME
+==========================*/
+
+.game-frame {
+  position: relative;
+
+  height: 690px;
+
+  padding: 22px;
+
+  border-radius: 30px;
+
+  background: linear-gradient(180deg, #75553a, #4e3826);
+
+  border: 4px solid var(--gold-dark);
+
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    inset 0 0 30px rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+/*==========================
+    GAME SCREEN
+==========================*/
+
+.game-screen {
+  width: 100%;
+  height: 100%;
+
+  border-radius: 20px;
+
+  background: linear-gradient(180deg, #efe8d8, #ddd2bd);
+
+  border: 3px solid #c6b288;
+
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.12),
+    inset 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+/*==========================
+    DECORATIVE CORNERS
+==========================*/
+
+.frame-top,
+.frame-bottom,
+.frame-left,
+.frame-right {
+  position: absolute;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.frame-top {
+  top: 8px;
+  left: 50px;
+  right: 50px;
+
+  height: 2px;
+}
+
+.frame-bottom {
+  bottom: 8px;
+  left: 50px;
+  right: 50px;
+
+  height: 2px;
+}
+
+.frame-left {
+  top: 50px;
+  bottom: 50px;
+  left: 8px;
+
+  width: 2px;
+}
+
+.frame-right {
+  top: 50px;
+  bottom: 50px;
+  right: 8px;
+
+  width: 2px;
+}
+
+/*==========================
+    SHARED PANEL STYLE
+==========================*/
+
+.chat-frame,
+.avatar-frame,
+.tips-frame {
+  position: relative;
+
+  background: linear-gradient(180deg, #6d5038, #4d3625);
+
+  border-radius: 22px;
+
+  border: 4px solid var(--gold-dark);
+
+  padding: 18px;
+
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    inset 0 -8px 20px rgba(0, 0, 0, 0.25), 0 10px 25px rgba(0, 0, 0, 0.45);
+}
+
+/*==========================
+    CHAT SIZE
+==========================*/
+
+.chat-frame {
+  flex: 1;
+}
+
+/*==========================
+    AVATAR SIZE
+==========================*/
+
+.avatar-frame {
+  height: 260px;
+}
+
+/*==========================
+    TIPS SIZE
+==========================*/
+
+.tips-frame {
+  height: 130px;
+}
+
+/*==========================
+    WOOD TEXTURE
+==========================*/
+
+.chat-frame::before,
+.tips-frame::before,
+.avatar-frame::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.06;
+
+  border-radius: 18px;
+
+  background: repeating-linear-gradient(
+    -15deg,
+
+    transparent 0px,
+
+    transparent 8px,
+
+    rgba(255, 255, 255, 0.5) 9px,
+
+    transparent 10px,
+
+    transparent 22px
+  );
+
+  pointer-events: none;
+}
+
+/*==========================
+    BRASS RIVETS
+==========================*/
+
+.chat-frame::after,
+.tips-frame::after,
+.avatar-frame::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 12px;
+
+  border-radius: 12px;
+
+  border: 2px solid rgba(235, 215, 150, 0.45);
+
+  pointer-events: none;
+}
+
+/*==========================
+    PANEL HEADER
+==========================*/
+
+.panel-header {
+  position: absolute;
+
+  left: 50%;
+
+  top: -18px;
+
+  transform: translateX(-50%);
+
+  min-width: 170px;
+
+  text-align: center;
+
+  padding: 8px 26px;
+
+  font-size: 20px;
+
+  font-weight: 800;
+
+  letter-spacing: 2px;
+
+  color: #f4ead3;
+
+  background: linear-gradient(180deg, #b8924b, #886326);
+
+  border: 3px solid #4f3818;
+
+  border-radius: 30px;
+
+  text-shadow: 0 1px 0 black;
+
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.25),
+    0 5px 10px rgba(0, 0, 0, 0.35);
+}
+
+/*==========================
+    PARCHMENT BODY
+==========================*/
+
+.chat-body,
+.tips-body,
+.avatar-body {
+  width: 100%;
+  height: 100%;
+
+  border-radius: 16px;
+
+  padding: 12px;
+
+  background: linear-gradient(180deg, #efe5cf, #ddd0b3);
+
+  border: 3px solid #c7b187;
+
+  overflow: hidden;
+
+  box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.45),
+    inset 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/*==========================
+    PAPER TEXTURE
+==========================*/
+
+.chat-body::before,
+.avatar-body::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.04;
+
+  background: radial-gradient(circle at 15% 20%, #000 1px, transparent 1px),
+    radial-gradient(circle at 80% 60%, #000 1px, transparent 1px),
+    radial-gradient(circle at 40% 80%, #000 1px, transparent 1px),
+    radial-gradient(circle at 65% 30%, #000 1px, transparent 1px);
+
+  background-size: 120px 120px, 140px 140px, 180px 180px, 150px 150px;
+
+  pointer-events: none;
+}
+
+/*==========================
+    CHAT PLACEHOLDER
+==========================*/
+
+.chat-body {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  color: #8b6b41;
+
+  font-size: 22px;
+
+  font-weight: bold;
+}
+
+/*==========================
+    AVATAR PLACEHOLDER
+==========================*/
+
+.avatar-body {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  color: #8b6b41;
+
+  font-size: 22px;
+
+  font-weight: bold;
+}
+
+/*==========================
+    BRASS CORNER CAPS
+==========================*/
+
+.chat-frame .corner,
+.tips-frame .corner,
+.avatar-frame .corner {
+  position: absolute;
+
+  width: 18px;
+  height: 18px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(circle, #d8bf73, #8c6929);
+
+  border: 2px solid #503915;
+}
+
+/*==========================
+    PANEL DIVIDER
+==========================*/
+
+.right-panel::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+  left: -18px;
+
+  width: 8px;
+
+  background: linear-gradient(180deg, #c7a85f, #8e6d2b, #c7a85f);
+
+  border-radius: 10px;
+
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.4), 0 0 5px rgba(0, 0, 0, 0.4);
+}
+
+/*==========================
+    INNER SHADOW
+==========================*/
+
+.chat-body {
+  position: relative;
+}
+
+.avatar-body {
+  position: relative;
+}
+
+/*==========================
+    GOLD EDGE GLOW
+==========================*/
+
+.chat-frame:hover,
+.tips-frame:hover,
+.avatar-frame:hover {
+  border-color: #d9bf73;
+
+  transition: 0.25s;
+
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 0 18px rgba(217, 191, 115, 0.2), 0 10px 25px rgba(0, 0, 0, 0.45);
+}
+
+/*==========================
+    RECORD BAR
+==========================*/
+
+.records {
+  height:180px;
+
+  display:flex;
+
+  gap:18px;
+
+  margin-top: 20px;
+}
+
+/*==========================
+    RECORD CARD
+==========================*/
+
+.record-card {
+  flex: 1;
+
+  position: relative;
+
+  overflow: hidden;
+
+  border-radius: 18px;
+
+  background: linear-gradient(180deg, #6a4c34, #4b3423);
+
+  border: 4px solid var(--gold-dark);
+
+  padding: 18px;
+
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    inset 0 -12px 18px rgba(0, 0, 0, 0.25), 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+/*==========================
+    WOOD GRAIN
+==========================*/
+
+.record-card::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.05;
+
+  background: repeating-linear-gradient(
+    25deg,
+    transparent 0px,
+
+    transparent 10px,
+
+    rgba(255, 255, 255, 0.55) 11px,
+
+    transparent 12px,
+
+    transparent 22px
+  );
+}
+
+/*==========================
+    INNER PARCHMENT
+==========================*/
+
+.record-content {
+  position: relative;
+
+  height: 100%;
+
+  border-radius: 12px;
+
+  background: linear-gradient(180deg, #efe7d3, #d9cab0);
+
+  border: 3px solid #c6af81;
+
+  padding: 15px;
+
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.45),
+    inset 0 0 12px rgba(0, 0, 0, 0.08);
+}
+
+/*==========================
+    HOVER
+==========================*/
+
+.record-card {
+  transition: 0.25s;
+}
+
+.record-card:hover {
+  transform: translateY(-4px);
+
+  border-color: var(--gold);
+
+  box-shadow: 0 0 18px rgba(217, 191, 115, 0.25),
+    0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+/*==========================
+    OUTER VIGNETTE
+==========================*/
+
+.overlay::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle,
+    transparent 65%,
+
+    rgba(0, 0, 0, 0.25)
+  );
+}
+
+/*==========================
+    SCREEN SHADOW
+==========================*/
+
+.game-screen {
+  position: relative;
+}
+
+.game-screen::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  border-radius: 18px;
+
+  box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.18);
+}
+
+/*==========================
+    GOLD GLOW
+==========================*/
+
+.title {
+  position: relative;
+}
+
+.title::after {
+  content: "";
+
+  position: absolute;
+
+  left: -20px;
+  right: -20px;
+  bottom: -6px;
+
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(217, 191, 115, 0.85),
+    transparent
+  );
+}
+
+/*==========================
+    SMOOTH TRANSITIONS
+==========================*/
+
+* {
+  transition: background 0.25s, border-color 0.25s, color 0.25s,
+    box-shadow 0.25s;
+}
+
+.title-bar {
+  position: absolute;
+
+  left: 45px;
+  right: 440px;
+
+  top: 80px;
+
+  height: 30px;
+}
+
+.title-line {
+  width: 100%;
+  height: 4px;
+
+  border-radius: 20px;
+
+  background: linear-gradient(90deg, #b48a45, #d8bf73, #b48a45);
+
+  position: relative;
+}
+
+.title-line::before,
+.title-line::after {
+  content: "";
+
+  position: absolute;
+
+  width: 24px;
+  height: 24px;
+
+  border-radius: 50%;
+
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  background: linear-gradient(180deg, #d7c47e, #97702d);
+
+  border: 2px solid #4d3617;
+}
+
+.title-line::before {
+  left: -6px;
+}
+
+.title-line::after {
+  right: -6px;
+}
+
+.rivet {
+  position: absolute;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(circle at 35% 35%, #eddb9b, #b98d3d);
+
+  border: 1px solid #6f5122;
+
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.tl {
+  top: 5px;
+  left: 10px;
+}
+
+.tr {
+  top: 5px;
+  right: 10px;
+}
+
+.bl {
+  bottom: 5px;
+  left: 10px;
+}
+
+.br {
+  bottom: 5px;
+  right: 10px;
+}

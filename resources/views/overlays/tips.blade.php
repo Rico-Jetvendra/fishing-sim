@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <title>Endral | Tips</title>
         <link rel="stylesheet" href="{{ asset('css/overlays.css') }}" />
     </head>
     <body>

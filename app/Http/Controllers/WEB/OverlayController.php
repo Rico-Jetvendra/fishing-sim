@@ -17,8 +17,18 @@ class OverlayController extends Controller{
         return view('overlays.record', compact('heaviest', 'lightest', 'shortest', 'longest'));
     }
 
+    public function background(){
+        return view('overlays.background');
+    }
+
     public function tips(){
         return view('overlays.tips');
+    }
+
+    public function chat(){
+        $bannedWords = config('combobox.banned_words');
+
+        return view('overlays.chat', compact('bannedWords'));
     }
 
     private function getData(){
