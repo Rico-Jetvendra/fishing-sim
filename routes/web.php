@@ -27,8 +27,7 @@ Route::middleware(['web'])->name('web.')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // Overlay
-    Route::get('/record', [OverlayController::class, 'record'])->name('record');
-    Route::get('/tips', [OverlayController::class, 'tips'])->name('tips');
+    Route::get('/title', [OverlayController::class, 'title'])->name('title');
     Route::get('/chat', [OverlayController::class, 'chat'])->name('chat');
     Route::get('/background', [OverlayController::class, 'background'])->name('background');
 

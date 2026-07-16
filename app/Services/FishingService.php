@@ -924,7 +924,7 @@ class FishingService{
                     ->select(
                         'l.location_name',
                         't_fish.fish_id',
-                        't_fish.fish_name',
+                        DB::raw('CONCAT(t_fish.fish_name, " (", fr.fish_rarity, ")") as fish_name'),
                         't_fish.fish_type',
                         't_fish.fish_rarity',
                         't_fish.fish_base_weight',
@@ -952,7 +952,7 @@ class FishingService{
                             ->join('t_fish_rarity as fr', 'fr.fish_rarity_id', '=', 'f.fish_rarity')
                             ->select(
                                 'mutation_id as fish_id',
-                                'f.fish_name as mutated_from',
+                                DB::raw('CONCAT(f.fish_name, " (", fr.fish_rarity, ")") as mutated_from'),
                                 'fr.base_bite',
                                 'fr.base_escape',
                                 'f.fish_rarity as fish_rarity_id',
@@ -988,8 +988,8 @@ class FishingService{
     private function recordLog(){
         $heaviest = $this->getRecord()->orderBy('fish_weight', 'DESC')->first() ?? [];
         $lightest = $this->getRecord()->orderBy('fish_weight', 'ASC')->first() ?? [];
-        $shortest = $this->getRecord()->orderBy('fish_length', 'DESC')->first() ?? [];
-        $longest  = $this->getRecord()->orderBy('fish_length', 'ASC')->first() ?? [];
+        $longest  = $this->getRecord()->orderBy('fish_length', 'DESC')->first() ?? [];
+        $shortest = $this->getRecord()->orderBy('fish_length', 'ASC')->first() ?? [];
 
         return [
             "heaviest" => $heaviest,

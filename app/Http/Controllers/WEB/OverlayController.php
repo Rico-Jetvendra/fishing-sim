@@ -8,21 +8,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OverlayController extends Controller{
-    public function record(){
+    public function background(){
         $heaviest = $this->getData()->orderBy('fish_weight', 'DESC')->first() ?? [];
         $lightest = $this->getData()->orderBy('fish_weight', 'ASC')->first() ?? [];
         $longest = $this->getData()->orderBy('fish_length', 'DESC')->first() ?? [];
         $shortest  = $this->getData()->orderBy('fish_length', 'ASC')->first() ?? [];
 
-        return view('overlays.record', compact('heaviest', 'lightest', 'shortest', 'longest'));
+        return view('overlays.background', compact('heaviest', 'lightest', 'shortest', 'longest'));
     }
 
-    public function background(){
-        return view('overlays.background');
-    }
-
-    public function tips(){
-        return view('overlays.tips');
+    public function title(){
+        return view('overlays.title');
     }
 
     public function chat(){

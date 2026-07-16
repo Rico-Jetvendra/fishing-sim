@@ -190,6 +190,8 @@ body {
 .game-frame {
   position: relative;
 
+  width: 85%;
+  max-width: 1200px;
   height: 690px;
 
   padding: 22px;
@@ -202,6 +204,9 @@ body {
 
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08),
     inset 0 0 30px rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.45);
+
+     margin-left: auto;
+    margin-right: auto;
 }
 
 /*==========================
@@ -212,9 +217,9 @@ body {
   width: 100%;
   height: 100%;
 
-  border-radius: 20px;
+  border-radius: 45px;
 
-  background: linear-gradient(180deg, #efe8d8, #ddd2bd);
+  /* background: linear-gradient(180deg, #efe8d8, #ddd2bd); */
 
   border: 3px solid #c6b288;
 
@@ -320,26 +325,16 @@ body {
 .tips-frame::before,
 .avatar-frame::before {
   content: "";
-
   position: absolute;
-
   inset: 0;
-
   opacity: 0.06;
-
   border-radius: 18px;
-
   background: repeating-linear-gradient(
     -15deg,
-
     transparent 0px,
-
     transparent 8px,
-
     rgba(255, 255, 255, 0.5) 9px,
-
     transparent 10px,
-
     transparent 22px
   );
 
@@ -354,15 +349,10 @@ body {
 .tips-frame::after,
 .avatar-frame::after {
   content: "";
-
   position: absolute;
-
   inset: 12px;
-
   border-radius: 12px;
-
   border: 2px solid rgba(235, 215, 150, 0.45);
-
   pointer-events: none;
 }
 
@@ -372,37 +362,23 @@ body {
 
 .panel-header {
   position: absolute;
-
   left: 50%;
-
   top: -18px;
-
   transform: translateX(-50%);
-
   min-width: 170px;
-
   text-align: center;
-
   padding: 8px 26px;
-
   font-size: 20px;
-
   font-weight: 800;
-
   letter-spacing: 2px;
-
   color: #f4ead3;
-
   background: linear-gradient(180deg, #b8924b, #886326);
-
   border: 3px solid #4f3818;
-
   border-radius: 30px;
-
   text-shadow: 0 1px 0 black;
-
   box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.25),
     0 5px 10px rgba(0, 0, 0, 0.35);
+  z-index: 99999;
 }
 
 /*==========================
@@ -414,17 +390,11 @@ body {
 .avatar-body {
   width: 100%;
   height: 100%;
-
   border-radius: 16px;
-
   padding: 12px;
-
   background: linear-gradient(180deg, #efe5cf, #ddd0b3);
-
   border: 3px solid #c7b187;
-
   overflow: hidden;
-
   box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.45),
     inset 0 0 20px rgba(0, 0, 0, 0.1);
 }
@@ -548,6 +518,7 @@ body {
 
 .chat-frame:hover,
 .tips-frame:hover,
+.empty-record:hover,
 .avatar-frame:hover {
   border-color: #d9bf73;
 
@@ -562,7 +533,7 @@ body {
 ==========================*/
 
 .records {
-  height:180px;
+  height:207px;
 
   display:flex;
 
@@ -588,7 +559,7 @@ body {
 
   border: 4px solid var(--gold-dark);
 
-  padding: 18px;
+  padding: 12px;
 
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08),
     inset 0 -12px 18px rgba(0, 0, 0, 0.25), 0 8px 20px rgba(0, 0, 0, 0.45);
@@ -627,19 +598,28 @@ body {
 
 .record-content {
   position: relative;
-
   height: 100%;
-
-  border-radius: 12px;
-
-  background: linear-gradient(180deg, #efe7d3, #d9cab0);
+  border-radius: 10px;
+  background: linear-gradient(
+    180deg,
+    #f2ead9 0%,
+    #e8ddc3 45%,
+    #ddd0b3 100%
+  );
 
   border: 3px solid #c6af81;
-
-  padding: 15px;
-
+  padding: 20px;
   box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.45),
     inset 0 0 12px rgba(0, 0, 0, 0.08);
+}
+
+.record-content::before{
+    content:"";
+    position:absolute;
+    inset:6px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,.35);
+    pointer-events:none;
 }
 
 /*==========================
@@ -647,7 +627,7 @@ body {
 ==========================*/
 
 .record-card {
-  transition: 0.25s;
+  transition:none;
 }
 
 .record-card:hover {
@@ -657,6 +637,7 @@ body {
 
   box-shadow: 0 0 18px rgba(217, 191, 115, 0.25),
     0 12px 28px rgba(0, 0, 0, 0.45);
+    transform:translateY(-4px);
 }
 
 /*==========================
@@ -742,7 +723,7 @@ body {
   left: 45px;
   right: 440px;
 
-  top: 80px;
+  top: 60px;
 
   height: 30px;
 }
@@ -789,8 +770,8 @@ body {
 .rivet {
   position: absolute;
 
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 
   border-radius: 50%;
 
@@ -820,4 +801,246 @@ body {
 .br {
   bottom: 5px;
   right: 10px;
+}
+
+#tips{
+
+    height:100%;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    gap:12px;
+
+    padding:0 18px;
+}
+
+.tip-icon{
+
+    font-size:28px;
+
+    flex-shrink:0;
+
+}
+
+.tip-text{
+
+    color:#3d2a1a;
+
+    font-size:20px;
+
+    font-weight:600;
+
+    line-height:1.3;
+
+    text-align:center;
+
+}
+
+.tip-command{
+
+    color:#b5842a;
+
+    font-weight:700;
+
+}
+
+
+/*
+RECORD
+*/
+
+.record-title{
+    font-weight:600;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:#7b5a31;
+    padding-bottom:8px;
+    margin-bottom:12px;
+    border-bottom: 1px solid rgba(140,110,55,.25);
+}
+
+.record-fish{
+    font-size:22px;
+    font-weight:600;
+    color:#3f2d1d;
+}
+
+.record-value{
+    margin-top:6px;
+    font-size:26px;
+    font-weight:700;
+    color:#6f4b16;
+}
+
+.record-user{
+    margin-top:12px;
+    color:#75624b;
+    font-size:16px;
+}
+
+.empty-record{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-top:6px;
+    min-height:170px;
+    padding:12px;
+    position:relative;
+    overflow:hidden;
+    border-radius:22px;
+    background:
+        linear-gradient(
+            180deg,
+            #6b4b33,
+            #4d3524
+        );
+
+    border:4px solid #8f6b2d;
+
+    box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,.08),
+        inset 0 -8px 18px rgba(0,0,0,.25),
+        0 8px 18px rgba(0,0,0,.35);
+
+}
+
+
+/* Wood Grain */
+
+.empty-record::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    opacity:.05;
+    background:
+        repeating-linear-gradient(
+            25deg,
+
+            transparent 0px,
+            transparent 10px,
+
+            rgba(255,255,255,.45) 11px,
+
+            transparent 12px,
+            transparent 22px
+        );
+
+}
+
+
+/* Parchment */
+.empty-content{
+    width:100%;
+    height:100%;
+    border-radius:16px;
+    padding:6px;
+    text-align:center;
+    background:
+        linear-gradient(
+            180deg,
+            #efe7d3,
+            #ddd0b5
+        );
+
+    border:3px solid #c5ae80;
+    box-shadow:
+        inset 0 0 18px rgba(255,255,255,.45),
+        inset 0 0 12px rgba(0,0,0,.08);
+}
+
+
+/* Trophy */
+.empty-icon{
+    font-size:32px;
+    margin-bottom:6px;
+}
+
+
+/* Title */
+.empty-title{
+    font-size:24px;
+    font-weight:800;
+    color:#4b3522;
+    margin-bottom:7px;
+    letter-spacing:1px;
+}
+
+
+/* Subtitle */
+.empty-text{
+    font-size:18px;
+    color:#72543a;
+    margin-bottom:18px;
+}
+
+/* Command */
+.command{
+    display:inline-block;
+    padding:8px 24px;
+    border-radius:30px;
+    background:
+        linear-gradient(
+            180deg,
+            #b78f44,
+            #8b6729
+        );
+
+    border:2px solid #5d431d;
+    color:#fff8ea;
+    font-size:24px;
+    font-weight:700;
+    text-shadow:0 1px 0 black;
+    box-shadow:
+        inset 0 0 6px rgba(255,255,255,.25),
+        0 3px 6px rgba(0,0,0,.35);
+
+}
+
+.command strong{
+    color:#ffe17a;
+}
+
+/* Brass Rivets */
+.empty-record::after{
+    content:"";
+    position:absolute;
+    inset:12px;
+    border:2px solid rgba(230,205,145,.35);
+    border-radius:14px;
+    pointer-events:none;
+
+}
+
+.blink{
+    animation:blink 1.5s infinite;
+}
+
+.record-bar.updated{
+    animation: recordFlash .8s ease;
+}
+
+@keyframes recordFlash{
+    0%{
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(103,240,170,0);
+    }
+
+    50%{
+        transform: scale(1.03);
+        box-shadow: 0 0 25px rgba(103,240,170,.9);
+    }
+
+    100%{
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(103,240,170,0);
+    }
+}
+
+@keyframes blink{
+    50%{
+        opacity:.4;
+    }
 }

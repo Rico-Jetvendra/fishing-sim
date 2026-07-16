@@ -6,7 +6,6 @@
         <link rel="stylesheet" href="{{ asset('css/overlays.css') }}" />
     </head>
     <body>
-        <div class="chat-box-header"><i class="bi bi-chat-square-text-fill"></i><span class="blink">CHAT BOX</span></div>
         <div id="chat-container">
         </div>
     </body>
@@ -37,11 +36,16 @@
 
         message.className = chatBox;
         message.innerHTML = `
+        <div class="chat-paper">
+
             <div class="${chatHeader}">
                 <span class="platform">${icon}</span>
-                <span class="username" style="color:${data.tags.color || '#ffffff'}">
+
+                <span class="username"
+                    style="color:${data.tags.color || '#8d6b2d'}">
                     ${username}
                 </span>
+
                 <span class="badge">
                     ${mod} ${subscriber}
                 </span>
@@ -50,6 +54,8 @@
             <div class="${chatMessage}">
                 ${escapeHtml(data.message)}
             </div>
+
+        </div>
         `;
 
         container.prepend(message);
