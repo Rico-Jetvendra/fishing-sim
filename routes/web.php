@@ -30,6 +30,11 @@ Route::middleware(['web'])->name('web.')->group(function () {
     Route::get('/title', [OverlayController::class, 'title'])->name('title');
     Route::get('/chat', [OverlayController::class, 'chat'])->name('chat');
     Route::get('/background', [OverlayController::class, 'background'])->name('background');
+    Route::get('/starting', [OverlayController::class, 'starting'])->name('starting');
+    Route::get('/brb', [OverlayController::class, 'brb'])->name('brb');
+    Route::get('/lost', [OverlayController::class, 'lost'])->name('lost');
+    Route::get('/follow', [OverlayController::class, 'follow'])->name('follow');
+    Route::get('/raid', [OverlayController::class, 'raid'])->name('raid');
 
     // Checking Session
     Route::middleware(['check.session'])->group(function () {

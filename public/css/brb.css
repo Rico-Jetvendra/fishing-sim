@@ -1,0 +1,874 @@
+/* ==========================================
+   RESET
+========================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+
+  background: #241811;
+}
+
+/* ==========================================
+   BACKGROUND
+========================================== */
+
+#overlay {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: radial-gradient(
+    circle at top,
+
+    #715133 0%,
+    #533821 40%,
+    #2d1d13 100%
+  );
+}
+
+/* ==========================================
+   MAIN FRAME
+========================================== */
+
+#frame {
+  position: relative;
+
+  width: 98%;
+  height: 96%;
+
+  overflow: hidden;
+
+  border-radius: 28px;
+
+  background: linear-gradient(135deg, #6f4b2d, #5a3d25, #4b331e);
+
+  border: 2px solid #c89d57;
+
+  box-shadow: inset 0 0 0 2px #8b642e, inset 0 0 0 6px rgba(255, 255, 255, 0.05),
+    0 15px 45px rgba(0, 0, 0, 0.45);
+}
+
+/* ==========================================
+   WOOD GRAIN
+========================================== */
+
+#frame::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.06;
+
+  background: repeating-linear-gradient(
+    12deg,
+    transparent 0,
+
+    transparent 15px,
+
+    rgba(255, 255, 255, 0.15) 16px,
+
+    transparent 17px
+  );
+}
+
+/* ==========================================
+   TOP BAR
+========================================== */
+
+#top-line {
+  position: absolute;
+
+  left: 40px;
+  right: 40px;
+  top: 22px;
+
+  height: 2px;
+
+  background: #c89d58;
+}
+
+/* ==========================================
+   GOLD PINS
+========================================== */
+
+.pin {
+  position: absolute;
+
+  top: 12px;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at 30% 30%,
+
+    #ffe6a4,
+    #d3af67 45%,
+
+    #8b632d
+  );
+
+  box-shadow: 0 0 8px rgba(255, 220, 120, 0.45);
+}
+
+.pin.left {
+  left: 28px;
+}
+
+.pin.right {
+  right: 28px;
+}
+
+/* ==========================================
+   CENTER PANEL
+========================================== */
+
+#center-panel {
+  position: absolute;
+
+  left: 120px;
+  right: 120px;
+
+  top: 90px;
+  bottom: 90px;
+
+  overflow: hidden;
+
+  border-radius: 32px;
+
+  border: 2px solid #c79b55;
+
+  background: linear-gradient(
+    #7ba6cb 0%,
+    #97bdd8 35%,
+    #5f8fa8 60%,
+    #2b5d72 100%
+  );
+
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06),
+    inset 0 0 100px rgba(0, 0, 0, 0.18);
+}
+
+/* ==========================================
+   CONTENT
+========================================== */
+
+#content {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: flex-start;
+
+  align-items: center;
+
+  z-index: 10;
+
+  padding-top: 80px;
+
+  text-align: center;
+}
+
+/* ==========================================
+   LOGO
+========================================== */
+
+#logo {
+  font-size: 56px;
+
+  margin-bottom: 20px;
+}
+
+/* ==========================================
+   GAME TITLE
+========================================== */
+
+#game-title {
+  color: #f3d489;
+
+  font-size: 22px;
+
+  letter-spacing: 8px;
+
+  margin-bottom: 35px;
+}
+
+/* ==========================================
+   MAIN TITLE
+========================================== */
+
+#brb {
+  font-size: 84px;
+
+  color: #fff4d4;
+
+  letter-spacing: 5px;
+
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(255, 230, 170, 0.15);
+}
+
+/* ==========================================
+   SUBTITLE
+========================================== */
+
+#subtitle {
+  margin-top: 60px;
+
+  font-size: 22px;
+
+  color: white;
+}
+
+/* ==========================================
+   STATUS
+========================================== */
+
+#status {
+  margin-top: 30px;
+
+  font-size: 28px;
+
+  color: #ffe7ab;
+}
+
+/* ==========================================
+   LANTERN
+========================================== */
+
+#lantern {
+  position: absolute;
+
+  top: 20px;
+  right: 80px;
+
+  font-size: 64px;
+
+  z-index: 5;
+}
+
+/* ==========================================
+   WATER
+========================================== */
+
+#water {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 45%;
+
+  overflow: hidden;
+}
+
+/* ==========================================
+   WAVES
+========================================== */
+
+.wave {
+  position: absolute;
+
+  left: -10%;
+
+  width: 120%;
+  height: 40px;
+
+  border-radius: 100%;
+
+  border-top: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.wave1 {
+  bottom: 160px;
+}
+
+.wave2 {
+  bottom: 115px;
+}
+
+.wave3 {
+  bottom: 70px;
+}
+
+/* ==========================================
+   DOCK
+========================================== */
+
+#dock {
+  position: absolute;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  bottom: 55px;
+
+  width: 520px;
+  height: 70px;
+
+  background: linear-gradient(#8d6236, #654223);
+
+  border-top: 5px solid #c89d58;
+
+  border-radius: 12px 12px 0 0;
+
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================
+   DOCK POSTS
+========================================== */
+
+.dock-post {
+  position: absolute;
+
+  bottom: -70px;
+
+  width: 24px;
+  height: 70px;
+
+  background: linear-gradient(#7c522d, #57351d);
+}
+
+.dock-post.left {
+  left: 40px;
+}
+
+.dock-post.right {
+  right: 40px;
+}
+
+/* ==========================================
+   FISH
+========================================== */
+
+.fish {
+  position: absolute;
+
+  font-size: 34px;
+
+  opacity: 0.25;
+}
+
+.fish1 {
+  bottom: 85px;
+  left: 25%;
+}
+
+.fish2 {
+  bottom: 135px;
+  right: -10%;
+}
+
+/* ==========================================
+   DECORATIONS
+========================================== */
+
+#bottom-left,
+#bottom-right {
+  position: absolute;
+
+  bottom: 25px;
+}
+
+#bottom-left {
+  left: 30px;
+}
+
+#bottom-right {
+  right: 30px;
+}
+
+#bucket,
+#crate {
+  font-size: 58px;
+}
+
+/* ==========================================
+   FISHING ROD
+========================================== */
+
+#fishing-rod {
+  position: absolute;
+
+  left: 55px;
+  top: 45px;
+
+  width: 5px;
+  height: 520px;
+
+  background: linear-gradient(#2a170a, #52341d, #2a170a);
+
+  border-radius: 20px;
+
+  transform: rotate(6deg);
+}
+
+/* ==========================================
+   WATER GRADIENT
+========================================== */
+
+#water {
+  background: linear-gradient(
+    to bottom,
+
+    rgba(255, 255, 255, 0.03),
+    rgba(40, 90, 120, 0.12),
+    rgba(18, 55, 78, 0.28)
+  );
+}
+
+/* ==========================================
+   WATER SHIMMER
+========================================== */
+
+#water::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+
+    rgba(255, 255, 255, 0.1) 45%,
+
+    transparent 60%
+  );
+
+  background-size: 250% 100%;
+
+  opacity: 0.35;
+
+  animation: waterShimmer 12s linear infinite;
+}
+
+/* ==========================================
+   MIST
+========================================== */
+
+#water::after {
+  content: "";
+
+  position: absolute;
+
+  left: -40%;
+  bottom: 180px;
+
+  width: 180%;
+  height: 140px;
+
+  background: radial-gradient(
+    ellipse,
+    rgba(255, 255, 255, 0.1),
+    transparent 70%
+  );
+
+  filter: blur(18px);
+
+  animation: mistMove 24s linear infinite;
+}
+
+/* ==========================================
+   WAVES
+========================================== */
+
+.wave {
+  animation: waveFloat 6s ease-in-out infinite;
+}
+
+.wave2 {
+  animation-delay: 1s;
+}
+
+.wave3 {
+  animation-delay: 2s;
+}
+
+/* ==========================================
+   LANTERN
+========================================== */
+
+#lantern {
+  transform-origin: top center;
+
+  animation: lanternSwing 5s ease-in-out infinite;
+
+  filter: drop-shadow(0 0 15px rgba(255, 220, 140, 0.35));
+}
+
+/* ==========================================
+   LANTERN LIGHT
+========================================== */
+
+#lantern::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 75px;
+
+  transform: translateX(-50%);
+
+  width: 180px;
+  height: 180px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(255, 220, 140, 0.25),
+    transparent 70%
+  );
+
+  z-index: -1;
+
+  animation: lanternGlow 3s ease-in-out infinite;
+}
+
+/* ==========================================
+   FISH
+========================================== */
+
+.fish {
+  animation: fishSwim 18s linear infinite;
+}
+
+.fish2 {
+  animation-delay: 2s;
+}
+
+/* ==========================================
+   BUCKET
+========================================== */
+
+#bucket {
+  animation: bucketRock 6s ease-in-out infinite;
+}
+
+/* ==========================================
+   CRATE
+========================================== */
+
+#crate {
+  animation: crateFloat 7s ease-in-out infinite;
+}
+
+/* ==========================================
+   FISHING ROD
+========================================== */
+
+#fishing-rod {
+  transform-origin: bottom center;
+
+  animation: rodSway 8s ease-in-out infinite;
+}
+
+/* ==========================================
+   TITLE
+========================================== */
+
+#brb {
+  animation: titleGlow 5s ease-in-out infinite;
+}
+
+/* ==========================================
+   STATUS
+========================================== */
+
+#status {
+  animation: statusFade 3s ease-in-out infinite;
+}
+
+/* ==========================================
+   FLOATING PARTICLES
+========================================== */
+
+#frame::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.18;
+
+  background-image: radial-gradient(circle, #ffffff 1px, transparent 2px);
+
+  background-size: 180px 180px;
+
+  animation: particles 30s linear infinite;
+}
+
+/* ==========================================
+   VIGNETTE
+========================================== */
+
+#overlay::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+
+    rgba(0, 0, 0, 0.1) 80%,
+
+    rgba(0, 0, 0, 0.35) 100%
+  );
+}
+
+/* ==========================================
+   KEYFRAMES
+========================================== */
+
+@keyframes waveFloat {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(25px);
+  }
+}
+
+@keyframes waterShimmer {
+  from {
+    background-position: -250% 0;
+  }
+
+  to {
+    background-position: 250% 0;
+  }
+}
+
+@keyframes mistMove {
+  from {
+    transform: translateX(-8%);
+  }
+
+  to {
+    transform: translateX(8%);
+  }
+}
+
+@keyframes lanternSwing {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes lanternGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+
+    transform: translateX(-50%) scale(1);
+  }
+
+  50% {
+    opacity: 0.9;
+
+    transform: translateX(-50%) scale(1.15);
+  }
+}
+
+@keyframes fishSwim {
+  0% {
+    transform: translateX(200px);
+  }
+
+  100% {
+    transform: translateX(-1800px);
+  }
+}
+
+@keyframes bucketRock {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(-5deg);
+  }
+}
+
+@keyframes crateFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes rodSway {
+  0%,
+  100% {
+    transform: rotate(6deg);
+  }
+
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes titleGlow {
+  0%,
+  100% {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4),
+      0 0 10px rgba(255, 230, 180, 0.15);
+  }
+
+  50% {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4),
+      0 0 25px rgba(255, 230, 180, 0.35);
+  }
+}
+
+@keyframes statusFade {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes particles {
+  from {
+    background-position: 0 100vh;
+  }
+
+  to {
+    background-position: 0 -100vh;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 1600px) {
+  #brb {
+    font-size: 72px;
+  }
+}
+
+@media (max-width: 1280px) {
+  #center-panel {
+    left: 80px;
+    right: 80px;
+  }
+
+  #dock {
+    width: 420px;
+  }
+}
+
+.ripple {
+  position: absolute;
+
+  width: 20px;
+  height: 20px;
+
+  border: 2px solid rgba(255, 255, 255, 0.45);
+
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%);
+
+  animation: rippleExpand 3.5s ease-out forwards;
+}
+
+.splash {
+  position: absolute;
+
+  font-size: 20px;
+
+  animation: splashJump 2s ease-out forwards;
+}
+
+@keyframes rippleExpand {
+  from {
+    width: 20px;
+    height: 20px;
+
+    opacity: 0.8;
+  }
+
+  to {
+    width: 180px;
+    height: 180px;
+
+    opacity: 0;
+  }
+}
+
+@keyframes splashJump {
+  0% {
+    transform: translateY(0);
+
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(-25px);
+  }
+
+  100% {
+    transform: translateY(0);
+
+    opacity: 0;
+  }
+}

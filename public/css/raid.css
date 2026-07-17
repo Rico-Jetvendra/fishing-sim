@@ -1,0 +1,69 @@
+.ship{
+    width:500px;
+    animation:bob 3s ease-in-out infinite;
+}
+
+.ship svg{
+    width:100%;
+    overflow:visible;
+}
+
+.shadow{
+    fill:#000;
+    opacity:.15;
+}
+
+.hull{
+    fill:#7A4E2B;
+}
+
+.deck{
+    fill:#A26A3D;
+}
+
+.cabin{
+    fill:#C89A62;
+}
+
+.roof{
+    fill:#5A3820;
+}
+
+.window{
+    fill:#FFD86A;
+}
+
+.mast{
+    fill:#5B3419;
+}
+
+.sail{
+    fill:#F8F3E7;
+    stroke:#C8C0B5;
+    stroke-width:2;
+}
+
+.flag{
+    fill:#C0392B;
+}
+
+.rope{
+    stroke:#8B6A44;
+    stroke-width:2;
+}
+
+.bowsprit{
+    stroke:#5B3419;
+    stroke-width:6;
+    stroke-linecap:round;
+}
+
+@keyframes bob{
+    0%,100%{
+        transform:translateY(0) rotate(.5deg);
+    }
+
+    50%{
+        transform:translateY(8px) rotate(-.5deg);
+    }
+}

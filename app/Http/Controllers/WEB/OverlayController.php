@@ -17,6 +17,26 @@ class OverlayController extends Controller{
         return view('overlays.background', compact('heaviest', 'lightest', 'shortest', 'longest'));
     }
 
+    public function starting(){
+        return view('overlays.starting');
+    }
+
+    public function brb(){
+        return view('overlays.brb');
+    }
+
+    public function lost(){
+        return view('overlays.lost');
+    }
+
+    public function follow(){
+        return view('overlays.follow');
+    }
+
+    public function raid(){
+        return view('overlays.raid');
+    }
+
     public function title(){
         return view('overlays.title');
     }

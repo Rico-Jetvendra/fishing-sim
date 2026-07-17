@@ -121,19 +121,35 @@
 <script>
     const tips = [
         {
-            icon: "🎣",
+            icon: "🐟",
             text: "Type <span class='tip-command blink'>!fish</span><br> to start fishing!"
+        },
+        {
+            icon: "🎣",
+            text: "Changed your rod / bait by typing <span class='tip-command blink'>!equip</span>!"
+        },
+        {
+            icon: "🎒",
+            text: "Check how many item you have by typing <span class='tip-command blink'>!inv</span>!"
+        },
+        {
+            icon: "📖",
+            text: "Check the description by typing <span class='tip-command blink'>!desc</span>!"
+        },
+        {
+            icon: "📜",
+            text: "Check a list of things by typing <span class='tip-command blink'>!list</span>!"
         },
         {
             icon: "🏆",
             text: "Records are reset every day!"
         },
         {
-            icon: "🐟",
+            icon: "⭐",
             text: "Bigger fish require better rods!"
         },
         {
-            icon: "✨",
+            icon: "🪱",
             text: "Different bait attracts different fish!"
         },
         {
