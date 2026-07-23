@@ -11,11 +11,13 @@ const queue = [];
 let showing = false;
 let timeout = null;
 
-socket.on("notice", (data) => {
+socket.on("follow", (data) => {
     queue.push(data);
     if (!showing){
         showNext();
     }
+
+    console.log("1");
 });
 
 function showNext(){
@@ -27,12 +29,14 @@ function showNext(){
     showing = true;
     const data = queue.shift();
     showLicense(data);
+
+    console.log("2");
 }
 
 function showLicense(data){
-    playerName.textContent = data.event.user_name ?? "Unknown";
+    playerName.textContent = data.user_name ?? "Unknown";
     playerRank.textContent = "Beginner";
-    guildId.textContent = formatToDDMMYYYY(data.event.followed_at) ?? formatToDDMMYYYY(new Date());
+    guildId.textContent = formatToDDMMYYYY(data.followed_at) ?? formatToDDMMYYYY(new Date());
 
     license.classList.remove("show");
     license.classList.remove("hide");
@@ -41,6 +45,8 @@ function showLicense(data){
     void license.offsetWidth;
 
     license.classList.add("show");
+
+    console.log("3");
 
     clearTimeout(timeout);
 

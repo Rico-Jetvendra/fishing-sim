@@ -82,7 +82,7 @@
                 <div id="bottom-left">
 
                     <div id="bobber">
-                        🛟
+                        ⚓
                     </div>
 
                 </div>

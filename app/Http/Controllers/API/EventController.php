@@ -55,7 +55,7 @@ class EventController extends Controller{
 
         GameState::first()->update(['current_season' => $season->season_id, 'current_weather' => $weather]);
 
-        return ['status' => 'success', 'message' => "The season changed to {$season->weather_name}."];
+        return ['status' => 'success', 'message' => "The season changed to {$season->season_name}."];
     }
 
     public function weather(Request $request){

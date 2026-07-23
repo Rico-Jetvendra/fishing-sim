@@ -86,7 +86,7 @@
         <div id="bottom-left">
 
             <div id="bucket">
-                🪣
+                ⚓
             </div>
 
         </div>

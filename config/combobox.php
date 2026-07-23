@@ -170,6 +170,9 @@
             'grow your channel',
             'viewers on',
             'viewer.shop',
+            'Ai viewer',
+            'streamboo .com',
+            'Ai viewers streamboo. Com'
         ],
     ];
 ?>
